@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+		"baseUrl": "./",
+		"outDir": "./dist/",
+		"sourceMap": true,
+		"strict": true,
+		"noImplicitReturns": true,
+		"noImplicitAny": true,
+		"esModuleInterop": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"target": "es5",
+		"paths": {
+			"tag-data": ["./data/tags.json"]
+		},
+	},
+	"include": [
+		"./vue-shim.d.ts",
+		"./src/entry-app.ts",
+		"./src/entry-userscript.ts",
+	],
+	"exclude": [
+		"node_modules/**/*",
+	],
+}
