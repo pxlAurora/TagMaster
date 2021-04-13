@@ -6,18 +6,23 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const isDev = process.env.NODE_ENV !== 'production';
 const isDevServer = process.env.WEBPACK_SERVER === '1';
 
+const filenamePattern = isDev ? '[name].js' : '[name].[contenthash].js';
+
 const config = {
 	mode: isDev ? 'development' : 'production',
 	target: 'web',
-	entry: (isDevServer ? {
-		app: './src/entry-app.ts',
-	} : {
-		tagMaster: './src/entry-userscript.ts',
-	}),
+	entry: {
+		...(isDevServer ? {
+			app: './src/entry-app.ts',
+		} : {
+			tagMaster: './src/entry-userscript.ts',
+		}),
+		searchWorker: './src/worker/search.worker.ts',
+	},
 	devtool: isDev ? 'cheap-source-map' : 'hidden-source-map',
 	output: {
 		path: path.resolve(__dirname, 'dist'),
-		filename: isDev ? '[name].js' : '[name].[contenthash].js',
+		filename: filenamePattern,
 		publicPath: isDevServer ? undefined : 'https://127.0.0.1:8080/',
 		jsonpFunction: 'tagWebpackJsonp',
 	},
@@ -53,6 +58,24 @@ const config = {
 						},
 					},
 				],
+				rules: [
+					{
+						test: /\.worker\.ts$/,
+						enforce: 'post',
+						use: {
+							loader: 'worker-loader',
+							options: {
+								filename: filenamePattern,
+								worker: {
+									type: 'SharedWorker',
+									options: {
+										name: 'tagmaster-worker',
+									},
+								}
+							},
+						},
+					},
+				],
 			},
 			{
 				test: /\.styl(us)?$/,
@@ -83,6 +106,7 @@ const config = {
 				inject: false,
 				appMountId: 'app',
 				filename: 'index.html',
+				excludeChunks: ['searchWorker'],
 			}),
 		]),
 	],
@@ -96,7 +120,7 @@ const config = {
 			maxInitialRequests: 10,
 			cacheGroups: {
 				app: {
-					test: ({resource: f}) => /[\\/]src[\\/]/.test(f) && !f.includes('entry-'),
+					test: ({resource: f}) => /[\\/]src[\\/]/.test(f) && !f.includes('entry-') && !f.includes('/worker/'),
 					name: 'app',
 					enforce: true,
 				},
