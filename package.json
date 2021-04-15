@@ -12,11 +12,9 @@
     "build-dev": "cross-env NODE_ENV=development webpack --mode development --progress"
   },
   "dependencies": {
-    "pako": "^1.0.11",
     "vue": "^2.6.11"
   },
   "devDependencies": {
-    "@types/pako": "^1.0.1",
     "autoprefixer": "^9.7.4",
     "cross-env": "^7.0.0",
     "css-loader": "^3.4.2",
