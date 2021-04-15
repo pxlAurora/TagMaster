@@ -29,7 +29,12 @@
 			</div>
 		</div>
 		<template v-if="expand">
-			<tag v-for="t in children" :key="t" :tagName="t" :depth="depth + 1" :expandUntil="expandUntil" :tagList="tagList" :lockedTagList="lockedTagList" />
+			<template v-if="dataLoaded">
+				<tag v-for="t in children" :key="t" :tagName="t" :depth="depth + 1" :expandUntil="expandUntil" :tagList="tagList" :lockedTagList="lockedTagList" />
+			</template>
+			<div v-else class="loading">
+				(loading)
+			</div>
 		</template>
 	</div>
 </template>
@@ -37,9 +42,9 @@
 <script lang="ts">
 import Vue from 'vue';
 
-import tagData from '../tagData';
+import {Tag} from '../common/types';
+import searchWorker, {tagData} from '../searchWorker';
 import {TagList} from '../TagList';
-import {Tag} from '../types';
 
 export default Vue.extend({
 	name: 'tag',
@@ -68,11 +73,20 @@ export default Vue.extend({
 	data() {
 		return {
 			expand: this.depth <= this.expandUntil,
+			dataLoaded: false,
 		};
 	},
 	watch: {
 		tagName() {
 			this.expand = this.depth <= this.expandUntil;
+		},
+		expandUntil() {
+			this.expand = this.depth <= this.expandUntil;
+		},
+		expand(to: boolean) {
+			if (to !== true) return;
+
+			this.requestTagData();
 		},
 	},
 	computed: {
@@ -92,7 +106,7 @@ export default Vue.extend({
 			// Always return an empty string for related groups to ensure they're displayed as a group and not a repeat of the tag.
 			// if (resolved.startsWith('#related/')) return '';
 
-			// If the last part matches an valid existing tag, pretend the group itself is a tag.
+			// If the last part matches a valid existing tag, pretend the group itself is a tag.
 			const lastSlashIndex = resolved.lastIndexOf('/');
 			const lastPart = resolved.substr(lastSlashIndex === -1 ? 1 : lastSlashIndex + 1);
 			if (tagData.tags[lastPart] && this.resolveTag(lastPart) !== 'invalid_tag') return lastPart;
@@ -119,7 +133,7 @@ export default Vue.extend({
 			return this.resolvedName[0] === '#';
 		},
 		group(): string[] {
-			return tagData.tagGroups[this.resolvedName];
+			return tagData.tagGroups[this.resolvedName] || [];
 		},
 		children(): string[] {
 			if (this.isGroup) return this.group;
@@ -129,6 +143,11 @@ export default Vue.extend({
 			}
 			return [];
 		},
+	},
+	mounted() {
+		if (this.expand) {
+			this.requestTagData();
+		}
 	},
 	methods: {
 		resolveTag(name: string): string {
@@ -141,6 +160,13 @@ export default Vue.extend({
 				if (!this.tagList.includes(this.name) || this.tagList.isImplied(this.name)) this.tagList.add(this.name);
 				else this.tagList.remove(this.name);
 			}, 0);
+		},
+		async requestTagData() {
+			if (this.dataLoaded) return;
+
+			await searchWorker.requestTagData(this.children);
+
+			this.dataLoaded = true;
 		},
 	},
 });
@@ -236,6 +262,11 @@ export default Vue.extend({
 				}
 			}
 		}
+	}
+
+	>.loading {
+		color: #aaa;
+		text-align: center;
 	}
 }
 </style>

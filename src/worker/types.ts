@@ -1,20 +1,13 @@
-import {MethodList, RequestMessage, ResponseMessage, WorkerMethod} from '../common/PortHandler';
-
-export interface SearchMethodInput {
-	filter: string;
-}
-
-export interface SearchMethodOutput {
-	tags: string[];
-}
-
-export type SearchMethod = WorkerMethod<SearchMethodInput, SearchMethodOutput>;
+import {MethodList, RequestMessage, ResponseMessage} from '../common/PortHandler';
+import {RequestTagDataMethod} from './method/requestTagData';
+import {SearchMethod} from './method/search';
 
 /**
  * List of request methods accepted by the search worker.
  */
 export interface WorkerRequestMethods extends MethodList {
 	search: SearchMethod;
+	requestTagData: RequestTagDataMethod;
 };
 
 export type WorkerRequestMessage<M extends keyof WorkerRequestMethods | null = null> = RequestMessage<WorkerRequestMethods, M>;

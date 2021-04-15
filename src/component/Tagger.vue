@@ -4,8 +4,14 @@
 			<h5 class="title" @mousedown.left="onMouseDown">Tag Master</h5>
 			<input class="search" type="text" v-model="searchedTag" @keypress.enter="doSearch" title="Search for tags. Spaces are used to create AND filters. Start with / to use RegEx. # for tag groups. @ for list of top 500 popular tags." />
 		</div>
-		<div v-show="!dragging">
-			<tag v-for="(t, index) in shownTags" track-by="t" :key="t" :tagName="t" :expandUntil="index < foundImmediateTags.length ? 0 : -1" :tagList="tagList" :lockedTagList="lockedTagList" />
+		<div v-if="dataLoaded" v-show="!dragging">
+			<tag v-for="(t, index) in shownTags" :key="t" :tagName="t" :expandUntil="index < foundImmediateTags.length ? 0 : -1" :tagList="tagList" :lockedTagList="lockedTagList" />
+		</div>
+		<div v-else class="info">
+			(loading)
+		</div>
+		<div v-if="searching" class="info">
+			(searching)
 		</div>
 	</blockquote>
 </template>
@@ -13,25 +19,10 @@
 <script lang="ts">
 import Vue from 'vue';
 
+import {TagData, TagType} from '../common/types';
 import Tag from './Tag.vue';
-import tagData from '../tagData';
 import {TagList} from '../TagList';
-import {TagData, TagType} from '../types';
-
-// FIXME: this shouldnt be handled on load
-const POPULAR = (() => {
-	const stored = localStorage.getItem('tags.popular');
-	const popular = stored ? JSON.parse(stored) : Object.entries(tagData.tags).filter(([, {count}]) => count > 10000).sort(([, a], [, b]) => b.count - a.count).slice(0, 500).map(([tag]) => tag);
-	if (!stored) localStorage.setItem('tags.popular', JSON.stringify(popular));
-	return popular;
-})();
-
-const GROUPS = (() => {
-	const stored = localStorage.getItem('tags.rootGroups');
-	const groups = stored ? JSON.parse(stored) : Object.keys(tagData.tagGroups).filter((name) => !name.includes('/')).sort();
-	if (!stored) localStorage.setItem('tags.rootGroups', JSON.stringify(groups));
-	return groups;
-})();
+import searchWorker, {tagData} from '../searchWorker';
 
 const HISTORY_KEY = 'tags.history';
 const UNLOAD_CONFIRM = () => confirm('Do you really want to leave? You might lose unsaved changes.');
@@ -71,10 +62,11 @@ export default Vue.extend({
 	},
 	data() {
 		return {
-			oldSearchedTag: '',
 			searchedTag: '',
 			foundImmediateTags: [] as string[],
 			foundTags: [] as string[],
+			dataLoaded: false,
+			searching: false,
 			searchTimeout: -1,
 			oldBeforeUnloadHandler: null as typeof window['onbeforeunload'],
 			mouseMoveHandler: null as typeof window['onmousemove'],
@@ -86,12 +78,8 @@ export default Vue.extend({
 	},
 	computed: {
 		shownTags(): string[] {
-			if (this.searchedTag === '@') {
-				return POPULAR;
-			} else if (this.searchedTag === '#') {
-				return GROUPS;
-			} else if (this.searchedTag) {
-				return this.foundImmediateTags.concat(this.foundTags.slice(0, 200));
+			if (this.searchedTag) {
+				return this.foundImmediateTags.concat(this.foundTags);
 			} else {
 				return this.sortedTagList;
 			}
@@ -109,9 +97,14 @@ export default Vue.extend({
 	watch: {
 		tagList: {
 			deep: true,
-			handler() {
+			handler(to: TagList, from: TagList) {
 				this.emitInput();
 				this.saveTags();
+
+				// Request new tag data when provided with a new tag list.
+				if (to !== from) {
+					this.requestTagData();
+				}
 			},
 		},
 		searchedTag() {
@@ -138,8 +131,13 @@ export default Vue.extend({
 				if (list.size() > 0) {
 					this.$set(this.tagList, 'tags', initial);
 					this.emitInput();
+					this.requestTagData();
 				}
+			} else {
+				this.dataLoaded = true;
 			}
+		} else {
+			this.requestTagData();
 		}
 	},
 	mounted() {
@@ -166,74 +164,21 @@ export default Vue.extend({
 		emitInput() {
 			this.$emit('input', this.tagList);
 		},
-		doSearch(quick: boolean = false) {
+		async doSearch(quick: boolean = false) {
 			if (!quick) clearTimeout(this.searchTimeout);
 
-			if (this.searchedTag[0] === '#') {
-				if (this.searchedTag[1] === '#') {
-					// '##' is a shortcut to the index tag group.
-					this.foundImmediateTags = ['#index'];
-					this.foundTags = [];
-					return;
-				} else if (this.searchedTag.startsWith('#+')) {
-					// '#+' marks a sequence of tags to display as a list.
-					this.foundImmediateTags = [];
-					this.foundTags = this.searchedTag.substr(2).split(/\s+/).filter((tag) => tag);
-					return;
-				}
+			this.searching = true;
 
-				if (quick) {
-					this.foundImmediateTags = tagData.tagGroups[this.searchedTag] ? [this.searchedTag] : [];
-					this.foundTags = [];
-				} else {
-					const exact = tagData.tagGroups[this.searchedTag];
+			const results = await searchWorker.search({
+				filter: this.searchedTag,
+				quick,
+			});
 
-					if (exact) {
-						this.foundImmediateTags = [this.searchedTag];
-						this.foundTags = [];
-					} else {
-						// The old algorithm that only searches in the first tag group. Returns much less but is much cleaner. Could probably be optimized by using a regex.
-						// const found = Object.keys(tagData.tagGroups).filter((name) => name.includes(this.searchedTag) && name.indexOf('/', this.searchedTag.length) === -1);
+			this.foundImmediateTags = results.best;
+			this.foundTags = results.other;
 
-						// '#/' searches in the last part of the tag group name, '#' searches in the first part.
-						const regex = new RegExp(this.searchedTag[1] === '/' ? `[#/][^/]*?${this.searchedTag.substr(2).replace(/([^a-zA-Z0-9])/, '\\$1')}[^/]*?$` : `#[^/]*?${this.searchedTag.substr(1).replace(/([^a-zA-Z0-9])/, '\\$1')}(?:$|[^/]*)`);
-
-						const found: string[] = [];
-						const related: string[] = [];
-						Object.keys(tagData.tagGroups).filter((name) => regex.test(name)).forEach((tag) => {
-							if (tag.startsWith('#related/')) related.push(tag);
-							else found.push(tag);
-						});
-
-						this.foundImmediateTags = found.length === 1 ? found : [];
-						this.foundTags = found.length > 1 ? found.concat(related) : related;
-					}
-				}
-
-				return;
-			}
-
-			if (this.searchedTag.length === 0) {
-				this.foundImmediateTags = [];
-				this.foundTags = [];
-			} else if (this.searchedTag[0] === '/') {
-				if (quick) {
-					this.foundImmediateTags = ['#press_enter'];
-					this.foundTags = [];
-				} else {
-					const regex = new RegExp(this.searchedTag.substr(1));
-
-					this.foundImmediateTags = [this.searchedTag.substr(1)];
-					this.foundTags = Object.keys(tagData.tags).filter((tag) => regex.test(tag) && tag !== this.searchedTag);
-				}
-			} else {
-				const filters = this.searchedTag.split(' ').filter((filter) => !quick || filter.length > 3);
-
-				this.foundImmediateTags = filters.length > 1 ? [] : filters;
-				this.foundTags = (quick ? this.foundTags : Object.keys(tagData.tags)).filter((tag) => filters.every((filter) => tag.includes(filter)) && !filters.includes(tag));
-			}
-
-			this.oldSearchedTag = this.searchedTag;
+			if (!quick || results.complete) this.searching = false;
+			if (results.complete) clearTimeout(this.searchTimeout);
 		},
 		saveTags() {
 			if (!this.tagList) return;
@@ -283,6 +228,13 @@ export default Vue.extend({
 				maxHeight,
 			};
 		},
+		async requestTagData() {
+			this.dataLoaded = false;
+
+			await searchWorker.requestTagData(Object.keys(this.tagList.tags));
+
+			this.dataLoaded = true;
+		},
 	},
 });
 </script>
@@ -329,6 +281,11 @@ export default Vue.extend({
 		>.search {
 			width: 100%;
 		}
+	}
+
+	>.info {
+		color: #aaa;
+		text-align: center;
 	}
 }
 </style>
