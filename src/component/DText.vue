@@ -1,5 +1,5 @@
 <script lang="ts">
-import Vue from 'vue';
+import Vue, {VNode} from 'vue';
 
 export enum TokenType {
 	TEXT,
@@ -14,7 +14,14 @@ export enum TokenType {
 }
 
 type Tokens = [TokenType, string][];
-type Parsed = (['text', string] | ['wiki', string, string] | ['link', string, string])[];
+type StyledText = {
+	style: 'bold' | 'italics' | 'underline' | 'strikeout' | 'superscript' | 'subscript' | 'spoiler';
+} | {
+	style: 'color';
+	color: string;
+};
+type ParsedEntity = ['text', string] | ['styled', StyledText, Parsed] | ['wiki', string, string] | ['link', string, string];
+type Parsed = ParsedEntity[];
 
 const parser = {
 	tokenize(str: string): Tokens {
@@ -101,6 +108,41 @@ const parser = {
 			// @ts-ignore
 			if (tokens[0][0] !== TokenType.BRACKET_RIGHT || tokens[1][0] !== TokenType.BRACKET_RIGHT) throw new Error('lmao bad');
 			tokens.splice(0, 2);
+		} else if (tokens[1][0] === TokenType.TEXT) {
+			const rawTag = tokens[1][1].split('=');
+			const tag = rawTag[0];
+			const contents = this.extractUntil(tokens.slice(3), [[TokenType.BRACKET_LEFT, '['], [TokenType.SLASH, '/'], [TokenType.TEXT, tag], [TokenType.BRACKET_RIGHT, ']']]);
+
+			const MAP = {
+				b: 'bold',
+				i: 'italics',
+				u: 'underline',
+				s: 'strikeout',
+				sup: 'superscript',
+				sub: 'subscript',
+				spoiler: 'spoiler',
+			} as const;
+			const style = MAP[tag as keyof typeof MAP];
+
+			if (!contents || (tag !== 'color' && !style)) {
+				out.push(['text', tokens.shift()![1]]);
+				return;
+			}
+
+			tokens.splice(0, 3 + contents.length + 4);
+
+			const parsedContents = this.parsePrimary(contents, []);
+
+			if (tag === 'color') {
+				out.push(['styled', {
+					style: 'color',
+					color: rawTag[1],
+				}, parsedContents]);
+			} else {
+				out.push(['styled', {
+					style,
+				}, parsedContents]);
+			}
 		} else {
 			out.push(['text', tokens.shift()![1]]);
 		}
@@ -132,6 +174,27 @@ const parser = {
 		}
 		return out.join('');
 	},
+	extractUntil(tokens: Tokens, until: Tokens): Tokens | null {
+		const out: Tokens = [];
+		while (tokens.length > until.length) {
+			let found = true;
+			for (let i = 0; i < until.length; i++) {
+				if (tokens[i][0] !== until[i][0] || tokens[i][1] !== until[i][1]) {
+					found = false;
+					break;
+				}
+			}
+
+			if (found) {
+				tokens.splice(0, until.length);
+				return out;
+			} else {
+				out.push(tokens.shift()!);
+			}
+		}
+		tokens.splice(0, 0, ...out);
+		return null;
+	},
 };
 
 export default Vue.extend({
@@ -161,13 +224,38 @@ export default Vue.extend({
 			return parser.parse(this.text);
 		},
 	},
-	render(h) {
+	render(h): VNode {
 		// @ts-ignore
-		const parsed = parser.parse(this.text);
+		const parsed = this.parsed as Parsed;
 
-		return h('div', parsed.map((entity) => {
+		function renderEntity(entity: ParsedEntity): ReturnType<typeof h> {
 			if (entity[0] === 'text') {
 				return h('span', entity[1]);
+			} else if (entity[0] === 'styled') {
+				const contents = entity[2].map(renderEntity);
+
+				if (entity[1].style === 'spoiler') {
+					return h('span', {
+						class: ['spoiler'],
+					}, contents);
+				} else if (entity[1].style === 'color') {
+					return h('span', {
+						class: ['dtext-color'],
+						style: {
+							color: entity[1].color,
+						},
+					}, contents);
+				}
+
+				return h(({
+					bold: 'strong',
+					italics: 'em',
+					underline: 'u',
+					strikeout: 's',
+					superscript: 'sup',
+					subscript: 'sub',
+					spoiler: 'span',
+				})[entity[1].style], contents);
 			} else if (entity[0] === 'wiki') {
 				return h('a', {
 					attrs: {
@@ -183,7 +271,9 @@ export default Vue.extend({
 			} else {
 				throw new Error(`${entity[0]} type not implemented`);
 			}
-		}));
+		}
+
+		return h('div', parsed.map(renderEntity));
 	},
 });
 </script>
