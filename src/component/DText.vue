@@ -151,8 +151,8 @@ const parser = {
 		const backup = tokens.slice();
 
 		tokens.shift();
-		const text = parser.consumeNonSpecial(tokens);
-		if (tokens[0][0] !== TokenType.QUOTE || tokens[1][0] !== TokenType.COLON || tokens[2][0] !== TokenType.TEXT) {
+		const text = parser.consumeUntil(tokens, [TokenType.QUOTE]);
+		if (tokens.length < 3 || tokens[0][0] !== TokenType.QUOTE || tokens[1][0] !== TokenType.COLON || tokens[2][0] !== TokenType.TEXT) {
 			tokens.splice(0, tokens.length, ...backup);
 			out.push(['text', tokens.shift()![1]]);
 			return;
