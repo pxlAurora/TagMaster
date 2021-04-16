@@ -3,6 +3,7 @@
 import {PortHandler, RequestHandlerMap} from '../common/PortHandler';
 import {requestTagData} from './method/requestTagData';
 import {search} from './method/search';
+import {tagDataLoaded} from './tagData';
 import {WorkerRequestMethods} from './types';
 
 declare var self: SharedWorkerGlobalScope & typeof globalThis;
@@ -21,4 +22,11 @@ self.addEventListener('connect', (event) => {
 	const port = event.ports[0];
 
 	portHandlers.push(new PortHandler(port, requestHandlers));
+});
+
+// Delay messages until the tag data is loaded.
+tagDataLoaded.then(() => {
+	portHandlers.forEach((portHandler) => {
+		portHandler.start();
+	});
 });

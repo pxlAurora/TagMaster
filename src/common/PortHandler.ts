@@ -59,7 +59,9 @@ export class PortHandler<Us extends MethodList, Them extends MethodList> {
 		this.requestHandlers = requestHandlers;
 
 		this.port.addEventListener('message', this.onMessage.bind(this));
+	}
 
+	start() {
 		this.port.start();
 	}
 

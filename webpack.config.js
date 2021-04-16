@@ -1,4 +1,3 @@
-const webpack = require('webpack');
 const path = require('path');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -17,14 +16,12 @@ const config = {
 		} : {
 			tagMaster: './src/entry-userscript.ts',
 		}),
-		searchWorker: './src/worker/search.worker.ts',
 	},
 	devtool: isDev ? 'cheap-source-map' : 'hidden-source-map',
 	output: {
-		path: path.resolve(__dirname, 'dist'),
 		filename: filenamePattern,
 		publicPath: isDevServer ? undefined : 'https://127.0.0.1:8080/',
-		jsonpFunction: 'tagWebpackJsonp',
+		chunkLoadingGlobal: 'tagWebpackJsonp',
 	},
 	module: {
 		rules: [
@@ -42,7 +39,7 @@ const config = {
 							importLoaders: 1,
 						},
 					},
-					'postcss-loader'
+					'postcss-loader',
 				],
 			},
 			{
@@ -55,24 +52,7 @@ const config = {
 							appendTsSuffixTo: [
 								/\.vue$/,
 							],
-						},
-					},
-				],
-				rules: [
-					{
-						test: /\.worker\.ts$/,
-						enforce: 'post',
-						use: {
-							loader: 'worker-loader',
-							options: {
-								filename: filenamePattern,
-								worker: {
-									type: 'SharedWorker',
-									options: {
-										name: 'tagmaster-worker',
-									},
-								}
-							},
+							onlyCompileBundledFiles: true,
 						},
 					},
 				],
@@ -84,6 +64,13 @@ const config = {
 					'css-loader',
 					'stylus-loader',
 				],
+			},
+			{
+				test: /e-scraper/,
+				type: 'asset/resource',
+				generator: {
+					filename: 'data.json',
+				},
 			},
 		],
 	},
@@ -103,7 +90,6 @@ const config = {
 		...(!isDevServer ? [] : [
 			new HtmlWebpackPlugin({
 				template: require('html-webpack-template'),
-				inject: false,
 				appMountId: 'app',
 				filename: 'index.html',
 				excludeChunks: ['searchWorker'],
@@ -111,37 +97,14 @@ const config = {
 		]),
 	],
 	optimization: {
-		runtimeChunk: {
-			name: isDevServer ? 'app' : 'tagMaster',
-		},
 		splitChunks: {
-			// fuck this section. so much. forcing webpack to lazy load shit is apparently impossible.
 			chunks: 'all',
 			maxInitialRequests: 10,
-			cacheGroups: {
-				app: {
-					test: ({resource: f}) => /[\\/]src[\\/]/.test(f) && !f.includes('entry-') && !f.includes('/worker/'),
-					name: 'app',
-					enforce: true,
-				},
-				vendor: {
-					test: /[\\/]node_modules[\\/]/,
-					name: 'vendor',
-					enforce: true,
-					priority: 50,
-				},
-				data: {
-					test: /e-scraper/,
-					name: 'data',
-					enforce: true,
-					priority: 100,
-				},
-			},
 		},
 	},
 	performance: {
 		assetFilter(assetFilename) {
-			return !(/\.map$|data(\.\w+)?\.js$/.test(assetFilename));
+			return !(/\.map$|data\.json$/.test(assetFilename));
 		},
 	},
 	devServer: {

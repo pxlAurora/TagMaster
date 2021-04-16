@@ -9,8 +9,7 @@ console.log('tagmaster boop');
 	async function createTagger() {
 		if (!urlExtract) return;
 
-		const {default: Tagger} = await import('./component/Tagger.vue');
-		const {TagList} = await import('./TagList');
+		const {TagList, Tagger} = await import('./index');
 	
 		// Showing post.
 		const container = document.createElement('div');

@@ -1,39 +1,25 @@
 import {PortHandler} from './common/PortHandler';
-import {TagData} from './common/types';
+import {TagDataStore} from './common/TagDataStore';
 import {SearchMethodInput, SearchMethodOutput} from './worker/method/search';
-import createWorker from './worker/search.worker';
 import {WorkerRequestMethods} from './worker/types';
 
 /**
  * Local tag data cache.
  */
-export const tagData: TagData = {
-	tags: {},
-	alias: {},
-	tagGroups: {},
-};
+const store = new TagDataStore();
 
-function updateTagData(data: TagData) {
-	Object.entries(data.tags).forEach(([key, value]) => {
-		tagData.tags[key] = value;
-	});
-	Object.entries(data.alias).forEach(([key, value]) => {
-		tagData.alias[key] = value;
-	});
-	Object.entries(data.tagGroups).forEach(([key, value]) => {
-		tagData.tagGroups[key] = value;
-	});
-}
+export const tagData = store.tagData;
 
-const worker = createWorker();
+const worker = new SharedWorker(new URL(/* webpackChunkName: 'search.worker' */ './worker/search.worker', import.meta.url) as unknown as string);
 
 const handler = new PortHandler<{}, WorkerRequestMethods>(worker.port, {});
+handler.start();
 
 export default {
 	async search(data: SearchMethodInput): Promise<SearchMethodOutput> {
 		const result = await handler.send('search', data);
 
-		updateTagData(result.tagData);
+		store.append(result.tagData);
 
 		return result;
 	},
@@ -42,6 +28,6 @@ export default {
 			tags,
 		});
 
-		updateTagData(data);
+		store.append(data);
 	},
 };
