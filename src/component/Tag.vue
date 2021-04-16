@@ -15,10 +15,12 @@
 						<span v-if="name !== tagName || isGroup" class="alias-of" :title="tagName">&lt;{{ aliasName }}&gt;</span>
 					</span>
 					<span class="count">{{ tag.count }}</span>
-					<span class="help" v-if="tag.hint">
+					<hover-detector tag="span" v-if="tag.hint" v-slot="{hovered}" class="help">
 						&nbsp;<a :href="`https://e621.net/wiki/show/${encodeURIComponent(name)}`" target="_blank">?</a>
-						<blockquote class="popup">{{ tag.hint || '[hint empty]' }}</blockquote>
-					</span>
+						<blockquote class="popup" v-if="hovered">
+							<dtext :text="tag.hint"></dtext>
+						</blockquote>
+					</hover-detector>
 				</template>
 				<template v-else-if="isGroup">
 					<span class="group" @click.left="expand = !expand" :title="tagName">{{ aliasName }}</span>
@@ -43,11 +45,17 @@
 import Vue from 'vue';
 
 import {Tag} from '../common/types';
+import DText from './DText.vue';
+import HoverDetector from './HoverDetector.vue';
 import searchWorker, {tagData} from '../searchWorker';
 import {TagList} from '../TagList';
 
 export default Vue.extend({
 	name: 'tag',
+	components: {
+		dtext: DText,
+		HoverDetector,
+	},
 	props: {
 		tagName: {
 			type: String,
@@ -249,16 +257,11 @@ export default Vue.extend({
 
 				>.popup {
 					z-index: 1;
-					display: none;
 					position: absolute;
 					top: 1.2em;
 					margin: 0;
 					padding: 1em;
 					width: 200px;
-
-					^[..-2]:hover ^[-1..-1] {
-						display: block;
-					}
 				}
 			}
 		}
