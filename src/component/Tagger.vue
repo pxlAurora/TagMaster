@@ -132,6 +132,8 @@ export default Vue.extend({
 					this.$set(this.tagList, 'tags', initial);
 					this.emitInput();
 					this.requestTagData();
+				} else {
+					this.dataLoaded = true;
 				}
 			} else {
 				this.dataLoaded = true;
