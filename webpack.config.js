@@ -18,11 +18,20 @@ const config = {
 			tagMaster: './src/entry-userscript.ts',
 		}),
 	},
-	devtool: isDev ? (!isStandalone ? 'eval-source-map' : 'cheap-source-map') : 'hidden-source-map',
+	devtool: isDev ? 'eval-source-map' : 'hidden-source-map',
 	output: {
 		filename: '[name].js',
 		publicPath: 'http://127.0.0.1:8080/',
 		chunkLoadingGlobal: 'tagWebpackJsonp',
+		devtoolModuleFilenameTemplate(info) {
+			if (info.resourcePath.endsWith('.vue')) {
+				if (info.moduleId === '' && info.query.includes('type=script')) return `webpack:///${info.resourcePath}`;
+
+				return `webpack:///${info.resourcePath}.${info.hash}`;
+			}
+
+			return `webpack:///${info.resourcePath}?${info.hash}`;
+		},
 	},
 	module: {
 		rules: [
@@ -31,16 +40,25 @@ const config = {
 				loader: 'vue-loader',
 			},
 			{
-				test: /\.css$/,
+				test: /\.(styl(us)?|css)$/,
 				use: [
 					'vue-style-loader',
 					{
 						loader: 'css-loader',
 						options: {
-							importLoaders: 1,
+							importLoaders: 2,
+							sourceMap: false,
 						},
 					},
 					'postcss-loader',
+				],
+				rules: [
+					{
+						test: /\.styl(us)?$/,
+						use: [
+							'stylus-loader',
+						],
+					},
 				],
 			},
 			{
@@ -56,14 +74,6 @@ const config = {
 							onlyCompileBundledFiles: true,
 						},
 					},
-				],
-			},
-			{
-				test: /\.styl(us)?$/,
-				use: [
-					'vue-style-loader',
-					'css-loader',
-					'stylus-loader',
 				],
 			},
 			{
