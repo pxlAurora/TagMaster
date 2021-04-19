@@ -110,8 +110,8 @@ const parser = {
 			tokens.splice(0, 2);
 		} else if (tokens[1][0] === TokenType.TEXT) {
 			const rawTag = tokens[1][1].split('=');
-			const tag = rawTag[0];
-			const contents = this.extractUntil(tokens.slice(3), [[TokenType.BRACKET_LEFT, '['], [TokenType.SLASH, '/'], [TokenType.TEXT, tag], [TokenType.BRACKET_RIGHT, ']']]);
+			const tag = rawTag[0].toLowerCase();
+			const contents = this.extractUntil(tokens.slice(3), [[TokenType.BRACKET_LEFT, '['], [TokenType.SLASH, '/'], [TokenType.TEXT, rawTag[0]], [TokenType.BRACKET_RIGHT, ']']]);
 
 			const MAP = {
 				b: 'bold',
