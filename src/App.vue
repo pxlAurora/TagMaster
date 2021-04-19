@@ -89,6 +89,38 @@ h5 {
 	border: 0;
 }
 
+.styled-dtext .dtext-color-gen, .styled-dtext .dtext-color-general {
+	color: #b4c7d9;
+}
+
+.styled-dtext .dtext-color-art, .styled-dtext .dtext-color-artist {
+	color: #f2ac08;
+}
+
+.styled-dtext .dtext-color-copy, .styled-dtext .dtext-color-copyright {
+	color: #d0d;
+}
+
+.styled-dtext .dtext-color-char, .styled-dtext .dtext-color-character {
+	color: #0a0;
+}
+
+.styled-dtext .dtext-color-spec, .styled-dtext .dtext-color-species {
+	color: #ed5d1f;
+}
+
+.styled-dtext .dtext-color-inv, .styled-dtext .dtext-color-invalid {
+	color: #ff3d3d;
+}
+
+.styled-dtext .dtext-color-meta {
+	color: #fff;
+}
+
+.styled-dtext .dtext-color-lor, .styled-dtext .dtext-color-lore {
+	color: #282;
+}
+
 .app {
 	display: flex;
 	flex-direction: row;

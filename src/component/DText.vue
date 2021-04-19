@@ -239,10 +239,18 @@ export default Vue.extend({
 						class: ['spoiler'],
 					}, contents);
 				} else if (entity[1].style === 'color') {
+					const color = entity[1].color;
+
+					if (/^gen(eral)?|art(ist)?|copy(right)?|char(acter)?|spec(ies)?|inv(alid)?|meta|lore?$/.test(color)) {
+						return h('span', {
+							class: [`dtext-color-${color}`],
+						}, contents);
+					}
+
 					return h('span', {
 						class: ['dtext-color'],
 						style: {
-							color: entity[1].color,
+							color: color,
 						},
 					}, contents);
 				}
@@ -273,7 +281,9 @@ export default Vue.extend({
 			}
 		}
 
-		return h('div', parsed.map(renderEntity));
+		return h('div', {
+			class: ['styled-dtext'],
+		}, parsed.map(renderEntity));
 	},
 });
 </script>
