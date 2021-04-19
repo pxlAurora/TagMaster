@@ -10,10 +10,36 @@ const store = new TagDataStore();
 
 export const tagData = store.tagData;
 
-const worker = new SharedWorker(new URL(/* webpackChunkName: 'search.worker' */ './worker/search.worker', import.meta.url) as unknown as string);
+declare global {
+	interface Window {
+		tagMasterUserscript?: {
+			GM_getResourceText(name: string): string;
+		};
+	}
+}
+
+// Workaround for loading a SharedWorker from a UserScript to bypass the strict origin policy.
+function getWorker() {
+	if (self.tagMasterUserscript) {
+		return new SharedWorker('data:application/javascript;base64,' + btoa(self.tagMasterUserscript.GM_getResourceText('search.worker')));
+	}
+
+	return new SharedWorker(new URL(/* webpackChunkName: 'search.worker' */ './worker/search.worker', import.meta.url) as unknown as string);
+}
+
+const worker = getWorker();
 
 const handler = new PortHandler<{}, WorkerRequestMethods>(worker.port, {});
 handler.start();
+
+if (self.tagMasterUserscript) {
+	// Workaround for SharedWorker CSP restrictions.
+	// FIXME: Only send data if the worker was unable to load it by itself.
+	const data = self.tagMasterUserscript.GM_getResourceText('data');
+	handler.send('updateTagData', {
+		rawTagData: data,
+	});
+}
 
 export default {
 	async search(data: SearchMethodInput): Promise<SearchMethodOutput> {

@@ -3,15 +3,14 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const isDev = process.env.NODE_ENV !== 'production';
-const isDevServer = process.env.WEBPACK_SERVER === '1';
+const isStandalone = process.env.WEBPACK_STANDALONE === '1';
 
-const filenamePattern = isDev ? '[name].js' : '[name].[contenthash].js';
 
 const config = {
 	mode: isDev ? 'development' : 'production',
 	target: 'web',
 	entry: {
-		...(isDevServer ? {
+		...(isStandalone ? {
 			app: './src/entry-app.ts',
 		} : {
 			tagMaster: './src/entry-userscript.ts',
@@ -19,8 +18,8 @@ const config = {
 	},
 	devtool: isDev ? 'cheap-source-map' : 'hidden-source-map',
 	output: {
-		filename: filenamePattern,
-		publicPath: isDevServer ? undefined : 'https://127.0.0.1:8080/',
+		filename: '[name].js',
+		publicPath: 'http://127.0.0.1:8080/',
 		chunkLoadingGlobal: 'tagWebpackJsonp',
 	},
 	module: {
@@ -87,21 +86,15 @@ const config = {
 	},
 	plugins: [
 		new VueLoaderPlugin(),
-		...(!isDevServer ? [] : [
+		...(!isStandalone ? [] : [
 			new HtmlWebpackPlugin({
 				template: require('html-webpack-template'),
 				appMountId: 'app',
 				filename: 'index.html',
-				excludeChunks: ['searchWorker'],
+				chunks: ['app'],
 			}),
 		]),
 	],
-	optimization: {
-		splitChunks: {
-			chunks: 'all',
-			maxInitialRequests: 10,
-		},
-	},
 	performance: {
 		assetFilter(assetFilename) {
 			return !(/\.map$|data\.json$/.test(assetFilename));
@@ -109,7 +102,8 @@ const config = {
 	},
 	devServer: {
 		public: '127.0.0.1:8080',
-		hot: true,
+		hot: isStandalone,
+		liveReload: isStandalone,
 	},
 };
 

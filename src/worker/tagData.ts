@@ -1,6 +1,6 @@
 import {TagDataStore} from '../common/TagDataStore';
 
-const store = new TagDataStore();
+export const store = new TagDataStore();
 
 export default store.tagData;
 

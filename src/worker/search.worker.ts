@@ -3,19 +3,18 @@
 import {PortHandler, RequestHandlerMap} from '../common/PortHandler';
 import {requestTagData} from './method/requestTagData';
 import {search} from './method/search';
+import {updateTagData} from './method/updateTagData';
 import {tagDataLoaded} from './tagData';
 import {WorkerRequestMethods} from './types';
 
 declare var self: SharedWorkerGlobalScope & typeof globalThis;
-
-// Webpack worker-loader types.
-export default (() => null) as unknown as (() => SharedWorker);
 
 const portHandlers: PortHandler<WorkerRequestMethods, {}>[] = [];
 
 const requestHandlers: RequestHandlerMap<WorkerRequestMethods> = {
 	search,
 	requestTagData,
+	updateTagData,
 };
 
 self.addEventListener('connect', (event) => {
