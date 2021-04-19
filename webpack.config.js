@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -5,6 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const isDev = process.env.NODE_ENV !== 'production';
 const isStandalone = process.env.WEBPACK_STANDALONE === '1';
 
+const tagDataPath = fs.realpathSync(path.resolve(__dirname, './data/tags.json'));
 
 const config = {
 	mode: isDev ? 'development' : 'production',
@@ -65,7 +67,7 @@ const config = {
 				],
 			},
 			{
-				test: /e-scraper/,
+				test: tagDataPath,
 				type: 'asset/resource',
 				generator: {
 					filename: 'data.json',
@@ -81,7 +83,7 @@ const config = {
 			'.ts',
 		],
 		alias: {
-			'tag-data$': path.resolve(__dirname, './data/tags.json'),
+			'tag-data$': tagDataPath,
 		},
 	},
 	plugins: [
@@ -97,7 +99,7 @@ const config = {
 	],
 	performance: {
 		assetFilter(assetFilename) {
-			return !(/\.map$|data\.json$/.test(assetFilename));
+			return !/\.map$|data\.json$/.test(assetFilename);
 		},
 	},
 	devServer: {
