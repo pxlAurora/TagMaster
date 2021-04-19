@@ -246,6 +246,10 @@ export default Vue.extend({
 	box-sizing: border-box;
 }
 
+>>>blockquote {
+	box-shadow: 2px 2px 5px #07162d;
+}
+
 .tagger {
 	width: 300px;
 	padding: 0;
@@ -256,6 +260,7 @@ export default Vue.extend({
 	max-height: 100vh;
 
 	&.floating {
+		z-index: 10;
 		position: fixed;
 	}
 

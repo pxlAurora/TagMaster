@@ -53,15 +53,15 @@ html {
 
 body {
 	margin: 0;
-	font-size: 82%;
+	font-size: 85%;
+	line-height: 1.25em;
 }
 
 blockquote {
 	background-color: #284a81;
 	border: 1px solid #174891;
-	border-radius: 4px;
-	box-shadow: 2px 2px 5px #07162d;
-	padding: 1em 1em 0;
+	border-radius: 3px;
+	padding: 1em 1em .2rem;
 }
 
 a {
@@ -76,7 +76,17 @@ a {
 h5 {
 	margin: 0;
 	padding: 0;
-	font-size: 1.2em;
+	font-size: 1em;
+}
+
+.button {
+	display: inline-block;
+	box-sizing: border-box;
+	border-radius: 6px;
+	font-size: 1rem;
+	line-height: 1.25rem;
+	padding: .25rem .5rem;
+	border: 0;
 }
 
 .app {

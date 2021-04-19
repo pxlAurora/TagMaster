@@ -1,11 +1,11 @@
 <template>
 	<div class="tag-container">
 		<div class="inner">
-			<div class="button" v-if="tagList">
+			<div class="tm-button" v-if="tagList">
 				<input v-if="(tag || !isGroup) && (resolvedName !== 'invalid_tag' || tagName === 'invalid_tag')" ref="checkbox" class="use" type="checkbox" @click.left.prevent="updateCheck" :checked="tagList.includes(name)" :indeterminate.prop="tagList.isImplied(name)" :disabled.prop="lockedTagList && lockedTagList.includes(name)" />
 			</div>
 			<div class="spacer" :style="{width: `${depth * 10}px`}"></div>
-			<div class="button">
+			<div class="tm-button">
 				<div v-if="children.length > 0" class="expand" @click.left="expand = !expand">{{ expand ? '▼' : '▲' }}</div>
 			</div>
 			<div class="tag">
@@ -188,10 +188,14 @@ export default Vue.extend({
 		min-height: 22px;
 		align-items: center;
 
-		>.button {
+		>.tm-button {
 			flex-grow: 0;
 			flex-shrink: 0;
 			width: 23px;
+
+			>input {
+				margin: 3px;
+			}
 
 			>.expand {
 				display: inline-block;
