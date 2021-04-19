@@ -176,7 +176,7 @@ const parser = {
 	},
 	extractUntil(tokens: Tokens, until: Tokens): Tokens | null {
 		const out: Tokens = [];
-		while (tokens.length > until.length) {
+		while (tokens.length >= until.length) {
 			let found = true;
 			for (let i = 0; i < until.length; i++) {
 				if (tokens[i][0] !== until[i][0] || tokens[i][1] !== until[i][1]) {
