@@ -21,12 +21,14 @@ export function getTagData(tags: string[]): TagData {
 	tags.forEach((tag) => {
 		data.tags[tag] = tagData.tags[tag];
 		data.tagGroups[tag] = tagData.tagGroups[tag];
+		data.tagGroups[`#related/${tag}`] = tagData.tagGroups[`#related/${tag}`];
 
 		const alias = tagData.alias[tag];
 		if (alias) {
 			data.alias[tag] = alias;
 			data.tags[alias] = tagData.tags[alias];
 			data.tagGroups[alias] = tagData.tagGroups[alias];
+			data.tagGroups[`#related/${alias}`] = tagData.tagGroups[`#related/${alias}`];
 		}
 	});
 
