@@ -18,7 +18,7 @@ const config = {
 			tagMaster: './src/entry-userscript.ts',
 		}),
 	},
-	devtool: isDev ? 'cheap-source-map' : 'hidden-source-map',
+	devtool: isDev ? (!isStandalone ? 'eval-source-map' : 'cheap-source-map') : 'hidden-source-map',
 	output: {
 		filename: '[name].js',
 		publicPath: 'http://127.0.0.1:8080/',
@@ -102,10 +102,19 @@ const config = {
 			return !/\.map$|data\.json$/.test(assetFilename);
 		},
 	},
+	optimization: {
+		splitChunks: {
+			cacheGroups: {
+				...(isStandalone ? {} : {
+					defaultVendors: false,
+				}),
+			},
+		},
+	},
 	devServer: {
 		public: '127.0.0.1:8080',
+		injectClient: isStandalone,
 		hot: isStandalone,
-		liveReload: isStandalone,
 	},
 };
 

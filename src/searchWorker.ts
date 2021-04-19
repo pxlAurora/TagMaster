@@ -10,14 +10,6 @@ const store = new TagDataStore();
 
 export const tagData = store.tagData;
 
-declare global {
-	interface Window {
-		tagMasterUserscript?: {
-			GM_getResourceText(name: string): string;
-		};
-	}
-}
-
 // Workaround for loading a SharedWorker from a UserScript to bypass the strict origin policy.
 function getWorker() {
 	if (self.tagMasterUserscript) {

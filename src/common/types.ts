@@ -1,3 +1,11 @@
+declare global {
+	interface Window {
+		tagMasterUserscript?: {
+			GM_getResourceText(name: string): string;
+		};
+	}
+}
+
 export interface TagData {
 	tags: Record<string, Tag>;
 	alias: Record<string, string>;
