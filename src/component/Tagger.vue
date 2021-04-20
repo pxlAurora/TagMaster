@@ -169,6 +169,10 @@ export default Vue.extend({
 		async doSearch(quick: boolean = false) {
 			if (!quick) clearTimeout(this.searchTimeout);
 
+			if (this.searchedTag === '') {
+				return this.requestTagData();
+			}
+
 			this.searching = true;
 
 			const results = await searchWorker.search({
