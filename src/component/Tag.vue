@@ -2,7 +2,7 @@
 	<div class="tag-container">
 		<div class="inner">
 			<div class="tm-button" v-if="tagList">
-				<input v-if="(tag || !isGroup) && (resolvedName !== 'invalid_tag' || tagName === 'invalid_tag')" ref="checkbox" class="use" type="checkbox" @click.left.prevent="updateCheck" :checked="tagList.includes(name)" :indeterminate.prop="tagList.isImplied(name)" :disabled.prop="lockedTagList && lockedTagList.includes(name)" />
+				<tag-checkbox v-if="(tag || !isGroup) && (resolvedName !== 'invalid_tag' || tagName === 'invalid_tag')" class="use" :tagList="tagList" :lockedTagList="lockedTagList" :name="name" />
 			</div>
 			<div class="spacer" :style="{width: `${depth * 10}px`}"></div>
 			<div class="tm-button">
@@ -47,6 +47,7 @@ import Vue from 'vue';
 import {Tag} from '../common/types';
 import DText from './DText.vue';
 import HoverDetector from './HoverDetector.vue';
+import TagCheckbox from './TagCheckbox.vue';
 import searchWorker, {tagData} from '../searchWorker';
 import {TagList} from '../TagList';
 
@@ -55,6 +56,7 @@ export default Vue.extend({
 	components: {
 		dtext: DText,
 		HoverDetector,
+		TagCheckbox,
 	},
 	props: {
 		tagName: {
@@ -160,14 +162,6 @@ export default Vue.extend({
 	methods: {
 		resolveTag(name: string): string {
 			return tagData.alias[name] || name;
-		},
-		updateCheck(event: MouseEvent) {
-			setTimeout(() => {
-				if (!this.tagList) return;
-
-				if (!this.tagList.includes(this.name) || this.tagList.isImplied(this.name)) this.tagList.add(this.name);
-				else this.tagList.remove(this.name);
-			}, 0);
 		},
 		async requestTagData() {
 			if (this.dataLoaded) return;
