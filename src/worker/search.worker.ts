@@ -21,11 +21,9 @@ self.addEventListener('connect', (event) => {
 	const port = event.ports[0];
 
 	portHandlers.push(new PortHandler(port, requestHandlers));
-});
 
-// Delay messages until the tag data is loaded.
-tagDataLoaded.then(() => {
-	portHandlers.forEach((portHandler) => {
-		portHandler.start();
+	// Delay messages until the tag data is loaded.
+	tagDataLoaded.then(() => {
+		port.start();
 	});
 });
