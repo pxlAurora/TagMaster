@@ -1,18 +1,17 @@
 // ==UserScript==
-// @name         Tag Master
-// @namespace    https://github.com/pxlAurora/
+// @name         [dev] Tag Master
+// @namespace    localhost
 // @version      1.0.0
 // @description  Tagging helper for e621.
 // @author       pxlAurora
 // @homepage     https://github.com/pxlAurora/TagMaster/
-// @updateURL    https://github.com/pxlAurora/TagMaster/releases/latest/download/tagMaster.user.js
 // @match        https://e621.net/*
 // @match        https://e926.net/*
 // @run-at       document-idle
-// @resource     tagMaster https://github.com/pxlAurora/TagMaster/releases/latest/download/tagMaster.js
-// @resource     tagMaster.lazy https://github.com/pxlAurora/TagMaster/releases/latest/download/tagMaster.lazy.js
-// @resource     search.worker https://github.com/pxlAurora/TagMaster/releases/latest/download/search.worker.js
-// @resource     data https://github.com/pxlAurora/e621-tag-data/releases/latest/download/data.json
+// @resource     tagMaster http://127.0.0.1:8080/tagMaster.js
+// @resource     tagMaster.lazy http://127.0.0.1:8080/tagMaster.lazy.js
+// @resource     search.worker http://127.0.0.1:8080/search.worker.js
+// @resource     data http://127.0.0.1:8080/data.json
 // @grant        GM_getResourceText
 // @grant        unsafeWindow
 // ==/UserScript==
