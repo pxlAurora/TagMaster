@@ -1,11 +1,12 @@
 {
-  "name": "e-tagger",
+  "name": "tagmaster",
   "version": "1.0.0",
-  "description": "",
+  "description": "Tagging helper for e621",
   "main": "index.js",
   "keywords": [],
-  "author": "",
+  "author": "pxlAurora",
   "license": "UNLICENSED",
+  "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack serve",
     "standalone-dev": "cross-env NODE_ENV=development WEBPACK_STANDALONE=1 webpack serve",
