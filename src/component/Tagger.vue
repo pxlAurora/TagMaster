@@ -1,5 +1,5 @@
 <template>
-	<blockquote class="tagger" :class="{floating}" v-show="visible" :style="getFloatingStyles()">
+	<floating-container :tag="'blockquote'" class="tagger" v-show="visible" :floating="floating" v-slot="{dragging, onMouseDown}">
 		<div class="sticky">
 			<h5 class="title" @mousedown.left="onMouseDown">Tag Master</h5>
 			<input class="search" type="text" v-model="searchedTag" @keypress.enter="doSearch" title="Search for tags. Spaces are used to create AND filters. Start with / to use RegEx. # for tag groups. @ for list of top 500 popular tags." />
@@ -13,13 +13,14 @@
 		<div v-if="searching" class="info">
 			(searching)
 		</div>
-	</blockquote>
+	</floating-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 
 import {TagData, TagType} from '../common/types';
+import FloatingContainer from './FloatingContainer.vue';
 import Tag from './Tag.vue';
 import {TagList} from '../TagList';
 import searchWorker, {tagData} from '../searchWorker';
@@ -33,6 +34,7 @@ const TAG_TYPE_ORDER = [TagType.ARTIST, TagType.CHARACTER, TagType.COPYRIGHT, Ta
 
 export default Vue.extend({
 	components: {
+		FloatingContainer,
 		Tag,
 	},
 	model: {
@@ -69,11 +71,6 @@ export default Vue.extend({
 			searching: false,
 			searchTimeout: -1,
 			oldBeforeUnloadHandler: null as typeof window['onbeforeunload'],
-			mouseMoveHandler: null as typeof window['onmousemove'],
-			mouseUpHandler: null as typeof window['onmouseup'],
-			windowResizeHandler: null as typeof window['onresize'],
-			dragging: false,
-			position: [0, 0] as [number, number],
 		};
 	},
 	computed: {
@@ -113,12 +110,6 @@ export default Vue.extend({
 			this.doSearch(true);
 			this.searchTimeout = window.setTimeout(() => this.doSearch(false), 500);
 		},
-		floating() {
-			// Position the element to exactly where it was when it became floating.
-			const bb = this.$el.getBoundingClientRect();
-			const style = window.getComputedStyle(this.$el);
-			this.position = [bb.left - parseFloat(style.marginLeft), bb.top - parseFloat(style.marginTop)];
-		},
 	},
 	created() {
 		if (this.tagList.size() === 0) {
@@ -146,21 +137,9 @@ export default Vue.extend({
 		// Technically not great but whatever, good enough. Let's just hope nothing else interacts with it. addEventListener doesn't work for this.
 		if (window.onbeforeunload !== UNLOAD_CONFIRM) this.oldBeforeUnloadHandler = window.onbeforeunload;
 		window.onbeforeunload = UNLOAD_CONFIRM;
-
-		// Always register floating related listeners in case the floating prop changes.
-		this.mouseMoveHandler = this.onMouseMove.bind(this);
-		window.addEventListener('mousemove', this.mouseMoveHandler);
-		this.mouseUpHandler = () => this.dragging = false;
-		window.addEventListener('mouseup', this.mouseUpHandler);
-		this.windowResizeHandler = this.$forceUpdate.bind(this);
-		window.addEventListener('resize', this.windowResizeHandler);
 	},
 	beforeDestroy() {
 		if (window.onbeforeunload === UNLOAD_CONFIRM) window.onbeforeunload = this.oldBeforeUnloadHandler;
-
-		if (this.mouseMoveHandler) window.removeEventListener('mousemove', this.mouseMoveHandler);
-		if (this.mouseUpHandler) window.removeEventListener('mouseup', this.mouseUpHandler);
-		if (this.windowResizeHandler) window.removeEventListener('resize', this.windowResizeHandler);
 	},
 	methods: {
 		emitInput() {
@@ -196,44 +175,6 @@ export default Vue.extend({
 			};
 			localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 		},
-		// Floating
-		onMouseDown() {
-			if (!this.floating) return;
-
-			this.dragging = true;
-
-			// Fix position being out of bounds at the start of drag.
-			const style = this.getFloatingStyles();
-			this.position = [
-				parseFloat(style.left),
-				parseFloat(style.top),
-			];
-		},
-		onMouseMove(event: MouseEvent) {
-			if (!this.dragging || !this.floating) return;
-
-			this.position = [this.position[0] + event.movementX, this.position[1] + event.movementY];
-		},
-		getFloatingStyles(): Record<string, any> {
-			if (!this.floating) return {};
-
-			let maxHeight: string | undefined = undefined;
-			let maxSize: [number, number] = [window.innerWidth, window.innerHeight];
-
-			if (this.$el) {
-				const style = window.getComputedStyle(this.$el);
-
-				maxHeight = `${window.innerHeight - Math.max(0, this.position[1]) - parseFloat(style.marginTop) - parseFloat(style.marginBottom)}px`;
-				maxSize[0] -= this.$el.clientWidth + parseFloat(style.marginLeft) + parseFloat(style.marginRight);
-				maxSize[1] -= this.$el.clientHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom);
-			};
-
-			return {
-				left: `${Math.max(0, Math.min(maxSize[0], this.position[0]))}px`,
-				top: `${Math.max(0, Math.min(maxSize[1], this.position[1]))}px`,
-				maxHeight,
-			};
-		},
 		async requestTagData() {
 			this.dataLoaded = false;
 
@@ -262,11 +203,6 @@ blockquote, >>>blockquote {
 	overflow-y: auto;
 	min-height: 70px;
 	max-height: 100vh;
-
-	&.floating {
-		z-index: 10;
-		position: fixed;
-	}
 
 	>.sticky {
 		z-index: 50;
