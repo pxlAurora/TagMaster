@@ -246,7 +246,7 @@ export default Vue.extend({
 	box-sizing: border-box;
 }
 
->>>blockquote {
+blockquote, >>>blockquote {
 	box-shadow: 2px 2px 5px #07162d;
 }
 
