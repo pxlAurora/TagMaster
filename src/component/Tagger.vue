@@ -219,7 +219,7 @@ export default Vue.extend({
 			if (this.$el) {
 				const style = window.getComputedStyle(this.$el);
 
-				maxHeight = `${window.innerHeight - this.position[1] - parseFloat(style.marginTop) - parseFloat(style.marginBottom)}px`;
+				maxHeight = `${window.innerHeight - Math.max(0, this.position[1]) - parseFloat(style.marginTop) - parseFloat(style.marginBottom)}px`;
 				maxSize[0] -= this.$el.clientWidth + parseFloat(style.marginLeft) + parseFloat(style.marginRight);
 				maxSize[1] -= this.$el.clientHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom);
 			};
