@@ -20,11 +20,10 @@
 window.document = unsafeWindow.document;
 window.user_level = unsafeWindow.user_level;
 window.Danbooru = unsafeWindow.Danbooru;
-window.tagWebpackJsonp = [];
-unsafeWindow.tagWebpackJsonp = window.tagWebpackJsonp;
-unsafeWindow.tagMasterUserscript = {
+unsafeWindow.tagWebpackJsonp = window.tagWebpackJsonp = [];
+unsafeWindow.tagMasterUserscript = window.tagMasterUserscript = {
     GM_getResourceText: function(name) {
-        if (['search.worker', 'data'].includes(name)) {
+        if (['tagMaster.lazy', 'search.worker', 'data'].includes(name)) {
             return GM_getResourceText(name);
         }
         throw new Error('Illegal GM_getResourceText call');
