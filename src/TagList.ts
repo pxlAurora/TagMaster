@@ -6,14 +6,24 @@ export class TagList {
 	/** Holds `false` if tag is implied, `true` if it's hard added. */
 	tags: Record<string, boolean> = {};
 
-	constructor(initial: string = '') {
-		initial.split(/\s+/).forEach((tag) => this.add(tag));
+	constructor(initial: string | string[] = '') {
+		this.set(initial);
 
 		return Vue.observable(this);
 	}
 
 	toString() {
 		return Object.entries(this.tags).filter(([, implied]) => implied !== false).map(([name]) => name).sort().join(' ');
+	}
+
+	set(tags: string | string[]) {
+		this.clear();
+
+		if (typeof(tags) === 'string') {
+			tags = tags.split(/\s+/);
+		}
+
+		tags.forEach((tag) => this.add(tag));
 	}
 
 	add(tag: string, implied: boolean = false) {

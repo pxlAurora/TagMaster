@@ -1,55 +1,98 @@
 console.log('tagmaster boop');
 
-(() => {
-	// TODO: upload page
-	// TODO: edit page
-	const urlExtract = /^\/posts\/(\d+)/.exec(window.location.pathname);
-	let tagger: any = null;
+interface Window {
+	Danbooru: any;
+}
 
-	async function createTagger(id: string) {
-		if (self.tagMasterUserscript) {
+interface CreateTaggerOptions {
+	id: string;
+	postTags?: HTMLTextAreaElement | null;
+	hidePostTags?: boolean;
+	postLockedTags?: HTMLTextAreaElement | null;
+	attachOn?: HTMLElement | null;
+}
+
+(() => {
+	if (document.body.dataset.userLevel === "0") return;
+
+	let tagger: any = null;
+	let initialized = false;
+
+	async function createTagger({id, postTags, hidePostTags, postLockedTags, attachOn}: CreateTaggerOptions) {
+		const newTags = postTags?.value?.replace(/\n/g, ' ') ?? '';
+		const newLockedTags = postLockedTags?.value?.replace(/\n/g, ' ') ?? '';
+
+		if (tagger) {
+			tagger.saveTags();
+
+			tagger.id = id;
+
+			tagger.tagList.set(newTags);
+			tagger.lockedTagList.set(newLockedTags);
+
+			tagger.requestTagData();
+			tagger.visible = true;
+
+			return;
+		}
+
+		if (self.tagMasterUserscript && !initialized) {
 			eval(self.tagMasterUserscript.GM_getResourceText('tagMaster.lazy'));
+
+			initialized = true;
 		}
 
 		const {TagList, Tagger} = await import(/* webpackChunkName: 'tagMaster.lazy' */ './index');
 
-		// Showing post.
-		const container = document.createElement('div');
-		container.id = 'tagmaster';
-		document.body.appendChild(container);
+		if (!attachOn) {
+			const container = document.createElement('div');
+			container.id = 'tagmaster';
+			document.body.appendChild(container);
 
-		const postTags = document.querySelector<HTMLTextAreaElement>('#post_tag_string');
-		if (!postTags) return;
+			attachOn = container;
+		}
 
-		const postLockedTags = document.querySelector<HTMLTextAreaElement>('#post_locked_tags');
-
-		const tagListContainer = postTags.parentElement?.parentElement;
-		if (tagListContainer) tagListContainer.style.display = 'none';
+		if (hidePostTags && postTags) {
+			const tagListContainer = postTags.parentElement?.parentElement;
+			if (tagListContainer) tagListContainer.style.display = 'none';
+		}
 	
 		tagger = new Tagger({
-			el: '#tagmaster',
+			el: attachOn,
 			propsData: {
 				id,
 				floating: true,
-				tagList: new TagList(postTags.value?.replace(/\n/g, '') ?? ''),
-				lockedTagList: new TagList(postLockedTags?.value?.replace(/\n/g, '') ?? ''),
+				tagList: new TagList(newTags),
+				lockedTagList: new TagList(newLockedTags),
 			},
 		});
 
-		tagger.$on('input', (tagList: typeof TagList) => {
-			postTags.value = tagList.toString();
-		});
+		if (postTags) {
+			tagger.$on('input', (tagList: typeof TagList) => {
+				postTags.value = tagList.toString();
+			});
+		}
 	}
 
-	if (!urlExtract || document.body.dataset.userLevel === "0") {
-		// nop
-	} else if (urlExtract[1]) {
+	function hideTagger() {
+		if (!tagger) return;
+
+		tagger.visible = false;
+	}
+
+	let matches: null | RegExpMatchArray;
+
+	if ((matches = /^\/posts\/(\d+)/.exec(window.location.pathname)) && matches[1]) {
+		const id = matches[1];
 		const editButtons = document.querySelectorAll<HTMLElement>('[href="#edit"]');
 
 		editButtons.forEach((editButton) => {
 			editButton.addEventListener('click', () => {
-				if (tagger) tagger.$props.visible = true;
-				else createTagger(urlExtract[1]);
+				createTagger({
+					id,
+					postTags: document.querySelector<HTMLTextAreaElement>('#post_tag_string'),
+					postLockedTags: document.querySelector<HTMLTextAreaElement>('#post_locked_tags'),
+				});
 			});
 		});
 
@@ -57,8 +100,33 @@ console.log('tagmaster boop');
 
 		if (respondButton) {
 			respondButton.addEventListener('click', () => {
-				if (tagger) tagger.$props.visible = false;
+				hideTagger();
 			});
+		}
+	} else if (matches = /^\/uploads\/new/.exec(window.location.pathname)) {
+		createTagger({
+			id: 'new',
+			postTags: document.querySelector<HTMLTextAreaElement>('#post_tags'),
+		});
+	} else if (matches = /^\/posts/.exec(window.location.pathname)) {
+		if (!self.Danbooru.PostModeMenu.tm_open_edit) {
+			self.Danbooru.PostModeMenu.tm_open_edit = self.Danbooru.PostModeMenu.open_edit;
+			self.Danbooru.PostModeMenu.tm_close_edit_form = self.Danbooru.PostModeMenu.close_edit_form;
+
+			self.Danbooru.PostModeMenu.open_edit = function(id: any) {
+				self.Danbooru.PostModeMenu.tm_open_edit(id);
+
+				createTagger({
+					id: '' + id,
+					postTags: document.querySelector<HTMLTextAreaElement>('#post_tag_string'),
+				});
+			}
+
+			self.Danbooru.PostModeMenu.close_edit_form = function() {
+				hideTagger();
+
+				self.Danbooru.PostModeMenu.tm_close_edit_form();
+			}
 		}
 	}
 })();

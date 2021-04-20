@@ -8,6 +8,7 @@
 // @match        https://e926.net/*
 // @run-at       document-idle
 // @resource     tagMaster http://127.0.0.1:8080/tagMaster.js
+// @resource     tagMaster.lazy http://127.0.0.1:8080/tagMaster.lazy.js
 // @resource     search.worker http://127.0.0.1:8080/search.worker.js
 // @resource     data http://127.0.0.1:8080/data.json
 // @grant        GM_getResourceText
@@ -16,6 +17,7 @@
 
 window.document = unsafeWindow.document;
 window.user_level = unsafeWindow.user_level;
+window.Danbooru = unsafeWindow.Danbooru;
 window.tagWebpackJsonp = [];
 unsafeWindow.tagWebpackJsonp = window.tagWebpackJsonp;
 unsafeWindow.tagMasterUserscript = {
