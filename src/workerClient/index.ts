@@ -1,7 +1,7 @@
-import {PortHandler} from './common/PortHandler';
-import {TagDataStore} from './common/TagDataStore';
-import {SearchMethodInput, SearchMethodOutput} from './worker/method/search';
-import {ClientRequestMethods, WorkerRequestMethods} from './worker/types';
+import {PortHandler} from '../common/PortHandler';
+import {TagDataStore} from '../common/TagDataStore';
+import {SearchMethodInput, SearchMethodOutput} from '../worker/method/search';
+import {ClientRequestMethods, WorkerRequestMethods} from '../worker/types';
 
 /**
  * Local tag data cache.
@@ -16,7 +16,7 @@ function getWorker() {
 		return new SharedWorker('data:application/javascript;base64,' + btoa(self.tagMasterUserscript.GM_getResourceText('search.worker.js')));
 	}
 
-	return new SharedWorker(new URL(/* webpackChunkName: 'search.worker' */ './worker/search.worker', import.meta.url) as unknown as string);
+	return new SharedWorker(new URL(/* webpackChunkName: 'search.worker' */ '../worker/search.worker', import.meta.url) as unknown as string);
 }
 
 const worker = getWorker();

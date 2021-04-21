@@ -23,7 +23,7 @@ import {TagData, TagType} from '../common/types';
 import FloatingContainer from './FloatingContainer.vue';
 import Tag from './Tag.vue';
 import {TagList} from '../TagList';
-import searchWorker, {tagData} from '../searchWorker';
+import workerClient, {tagData} from '../workerClient';
 
 const HISTORY_KEY = 'tags.history';
 const UNLOAD_CONFIRM = () => confirm('Do you really want to leave? You might lose unsaved changes.');
@@ -154,7 +154,7 @@ export default Vue.extend({
 
 			this.searching = true;
 
-			const results = await searchWorker.search({
+			const results = await workerClient.search({
 				filter: this.searchedTag,
 				quick,
 			});
@@ -178,7 +178,7 @@ export default Vue.extend({
 		async requestTagData() {
 			this.dataLoaded = false;
 
-			await searchWorker.requestTagData(Object.keys(this.tagList.tags));
+			await workerClient.requestTagData(Object.keys(this.tagList.tags));
 
 			this.dataLoaded = true;
 		},

@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-import {tagData} from './searchWorker';
+import {tagData} from './workerClient';
 
 export class TagList {
 	/** Holds `false` if tag is implied, `true` if it's hard added. */
