@@ -1,4 +1,5 @@
 import {MethodList, RequestMessage, ResponseMessage} from '../common/PortHandler';
+import {PingMethod} from './clientMethod/ping';
 import {RequestTagDataMethod} from './method/requestTagData';
 import {SearchMethod} from './method/search';
 import {UpdateTagDataMethod} from './method/updateTagData';
@@ -14,3 +15,10 @@ export interface WorkerRequestMethods extends MethodList {
 
 export type WorkerRequestMessage<M extends keyof WorkerRequestMethods | null = null> = RequestMessage<WorkerRequestMethods, M>;
 export type WorkerResponseMessage<M extends keyof WorkerRequestMethods | null = null> = ResponseMessage<WorkerRequestMethods, M>;
+
+/**
+ * List of request methods sent by the search worker.
+ */
+export interface ClientRequestMethods extends MethodList {
+	ping: PingMethod;
+}

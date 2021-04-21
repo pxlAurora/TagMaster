@@ -1,7 +1,7 @@
 import {PortHandler} from './common/PortHandler';
 import {TagDataStore} from './common/TagDataStore';
 import {SearchMethodInput, SearchMethodOutput} from './worker/method/search';
-import {WorkerRequestMethods} from './worker/types';
+import {ClientRequestMethods, WorkerRequestMethods} from './worker/types';
 
 /**
  * Local tag data cache.
@@ -21,7 +21,11 @@ function getWorker() {
 
 const worker = getWorker();
 
-const handler = new PortHandler<{}, WorkerRequestMethods>(worker.port, {});
+const handler = new PortHandler<ClientRequestMethods, WorkerRequestMethods>(worker.port, {
+	ping() {
+		return {};
+	},
+});
 handler.start();
 
 if (self.tagMasterUserscript) {

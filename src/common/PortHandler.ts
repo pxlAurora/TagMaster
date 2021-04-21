@@ -54,15 +54,31 @@ export class PortHandler<Us extends MethodList, Them extends MethodList> {
 
 	responseHandlers: Map<string, (data: ResponseMessage<Them>['data']) => void> = new Map();
 
+	onClosed: Promise<void>;
+	isClosed = false;
+	private callOnClosed!: () => void;
+
 	constructor(port: MessagePort, requestHandlers: RequestHandlerMap<Us>) {
 		this.port = port;
 		this.requestHandlers = requestHandlers;
+
+		this.onClosed = new Promise((resolve) => {
+			this.callOnClosed = resolve;
+		});
 
 		this.port.addEventListener('message', this.onMessage.bind(this));
 	}
 
 	start() {
 		this.port.start();
+	}
+
+	close() {
+		this.isClosed = true;
+
+		this.port.close();
+
+		this.callOnClosed();
 	}
 
 	async onMessage(event: MessageEvent<RequestMessage<Us> | ResponseMessage<Them>>): Promise<void> {
