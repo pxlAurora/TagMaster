@@ -104,7 +104,7 @@ const config = {
 					headers: [
 						['name', isDev ? '[dev] Tag Master' : 'Tag Master'],
 						['namespace', isDev ? 'localhost' : 'https://github.com/pxlAurora/'],
-						['version', '1.0.0'],
+						['version', require('./package.json').version],
 						['description', 'Tagging helper for e621.'],
 						['author', 'pxlAurora'],
 						['homepage', 'https://github.com/pxlAurora/TagMaster/'],
