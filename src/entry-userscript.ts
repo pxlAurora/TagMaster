@@ -37,7 +37,7 @@ interface CreateTaggerOptions {
 		}
 
 		if (self.tagMasterUserscript && !initialized) {
-			eval(self.tagMasterUserscript.GM_getResourceText('tagMaster.lazy'));
+			eval(self.tagMasterUserscript.GM_getResourceText('tagMaster.lazy.js'));
 
 			initialized = true;
 		}

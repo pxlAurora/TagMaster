@@ -62,7 +62,7 @@ You can develop in standalone mode, which puts the tagger on a dummy page with H
 npm run standalone-dev
 ```
 
-Or in userscript mode without HMR for testing as an actual userscript. This works with the `tagMaster.user.dev.js` script. Running in this mode may require manually purging the userscript resource cache on every update:
+Or in userscript mode without HMR for testing as an actual userscript. This works with the [`tagMaster.user.dev.js`](http://127.0.0.1:8080/tagMaster.user.dev.js). Running in this mode may require manually purging the userscript resource cache on every update:
 
 ```sh
 npm run dev

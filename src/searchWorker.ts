@@ -13,7 +13,7 @@ export const tagData = store.tagData;
 // Workaround for loading a SharedWorker from a UserScript to bypass the strict origin policy.
 function getWorker() {
 	if (self.tagMasterUserscript) {
-		return new SharedWorker('data:application/javascript;base64,' + btoa(self.tagMasterUserscript.GM_getResourceText('search.worker')));
+		return new SharedWorker('data:application/javascript;base64,' + btoa(self.tagMasterUserscript.GM_getResourceText('search.worker.js')));
 	}
 
 	return new SharedWorker(new URL(/* webpackChunkName: 'search.worker' */ './worker/search.worker', import.meta.url) as unknown as string);
@@ -27,7 +27,7 @@ handler.start();
 if (self.tagMasterUserscript) {
 	// Workaround for SharedWorker CSP restrictions.
 	// FIXME: Only send data if the worker was unable to load it by itself.
-	const data = self.tagMasterUserscript.GM_getResourceText('data');
+	const data = self.tagMasterUserscript.GM_getResourceText('data.json');
 	handler.send('updateTagData', {
 		rawTagData: data,
 	});

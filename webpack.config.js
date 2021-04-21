@@ -21,7 +21,7 @@ const config = {
 	devtool: isDev ? 'eval-source-map' : 'hidden-source-map',
 	output: {
 		filename: '[name].js',
-		publicPath: 'http://127.0.0.1:8080/',
+		publicPath: isDev ? 'http://127.0.0.1:8080/' : 'https://github.com/pxlAurora/TagMaster/releases/latest/download/',
 		chunkLoadingGlobal: 'tagWebpackJsonp',
 		devtoolModuleFilenameTemplate(info) {
 			if (info.resourcePath.endsWith('.vue')) {
@@ -98,7 +98,33 @@ const config = {
 	},
 	plugins: [
 		new VueLoaderPlugin(),
-		...(!isStandalone ? [] : [
+		...(!isStandalone ? [
+			new HtmlWebpackPlugin({
+				templateContent: require('./userscriptTemplate.js')({
+					headers: [
+						['name', isDev ? '[dev] Tag Master' : 'Tag Master'],
+						['namespace', isDev ? 'localhost' : 'https://github.com/pxlAurora/'],
+						['version', '1.0.0'],
+						['description', 'Tagging helper for e621.'],
+						['author', 'pxlAurora'],
+						['homepage', 'https://github.com/pxlAurora/TagMaster/'],
+						['match', 'https://e621.net/*'],
+						['match', 'https://e926.net/*'],
+						['run-at', 'document-idle'],
+						['grant', 'GM_getResourceText'],
+						['grant', 'unsafeWindow'],
+					],
+					publicPathOverrides: {
+						'data.json': isDev ? false : 'https://github.com/pxlAurora/e621-tag-data/releases/latest/download/',
+					},
+					userscriptContents: fs.readFileSync(path.resolve(__dirname, './tagMaster.user.template.js')),
+				}),
+				filename: isDev ? 'tagMaster.dev.user.js' : 'tagMaster.user.js',
+				chunks: ['tagMaster.js', 'tagMaster.lazy.js', 'search.worker.js', 'data.json'],
+				inject: false,
+				minify: false,
+			}),
+		] : [
 			new HtmlWebpackPlugin({
 				template: require('html-webpack-template'),
 				appMountId: 'app',
@@ -122,7 +148,7 @@ const config = {
 		},
 	},
 	devServer: {
-		public: '127.0.0.1:8080',
+		public: 'http://127.0.0.1:8080/',
 		injectClient: isStandalone,
 		hot: isStandalone,
 	},
