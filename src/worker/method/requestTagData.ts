@@ -1,6 +1,6 @@
 import {TagData} from '../../common/types';
 import {WorkerMethod} from '../../common/PortHandler';
-import tagData from '../tagData';
+import tagData, {tagDataLoaded} from '../tagData';
 
 export interface RequestTagDataMethodInput {
 	tags: string[];
@@ -35,6 +35,8 @@ export function getTagData(tags: string[]): TagData {
 	return data;
 }
 
-export function requestTagData({tags}: RequestTagDataMethodInput): RequestTagDataMethodOutput {
+export async function requestTagData({tags}: RequestTagDataMethodInput): Promise<RequestTagDataMethodOutput> {
+	await tagDataLoaded;
+
 	return getTagData(tags);
 }

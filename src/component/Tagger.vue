@@ -8,7 +8,7 @@
 			<tag v-for="(t, index) in shownTags" :key="t" :tagName="t" :expandUntil="index < foundImmediateTags.length ? 0 : -1" :tagList="tagList" :lockedTagList="lockedTagList" />
 		</div>
 		<div v-else class="info">
-			(loading)
+			({{ loadingText }})
 		</div>
 		<div v-if="searching" class="info">
 			(searching)
@@ -23,7 +23,7 @@ import {TagData, TagType} from '../common/types';
 import FloatingContainer from './FloatingContainer.vue';
 import Tag from './Tag.vue';
 import {TagList} from '../TagList';
-import workerClient, {tagData} from '../workerClient';
+import workerClient, {downloadProgress, tagData} from '../workerClient';
 
 const HISTORY_KEY = 'tags.history';
 const UNLOAD_CONFIRM = () => confirm('Do you really want to leave? You might lose unsaved changes.');
@@ -71,6 +71,7 @@ export default Vue.extend({
 			searching: false,
 			searchTimeout: -1,
 			oldBeforeUnloadHandler: null as typeof window['onbeforeunload'],
+			downloadProgress,
 		};
 	},
 	computed: {
@@ -89,6 +90,15 @@ export default Vue.extend({
 
 				return a.localeCompare(b);
 			});
+		},
+		loadingText(): string {
+			const out = ['loading'] as string[];
+
+			if (this.downloadProgress.loaded > 0) {
+				out.push(this.downloadProgress.total > 0 ? `${Math.floor(this.downloadProgress.loaded / this.downloadProgress.total * 1000) / 10}%` : `${this.downloadProgress.loaded / 1000000} MB`);
+			}
+
+			return out.join(', ');
 		},
 	},
 	watch: {
@@ -123,15 +133,11 @@ export default Vue.extend({
 					this.$set(this.tagList, 'tags', initial);
 					this.emitInput();
 					this.requestTagData();
-				} else {
-					this.dataLoaded = true;
 				}
-			} else {
-				this.dataLoaded = true;
 			}
-		} else {
-			this.requestTagData();
 		}
+
+		this.requestTagData();
 	},
 	mounted() {
 		// Technically not great but whatever, good enough. Let's just hope nothing else interacts with it. addEventListener doesn't work for this.

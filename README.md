@@ -24,6 +24,8 @@ Tag Master is a userscript that runs in your browser using an extension.
 
 The userscript manager should download updates automatically, with frequency depending on its configuration. Because Tag Master relies on the resource (aka externals) system of userscripts, this may be different than the update frequency of userscripts. In case of Tampermonkey the default is every 7 days.
 
+Tag data updates are checked at least 24 hours after the last check, as soon as Tag Master is opened.
+
 
 ## Usage
 

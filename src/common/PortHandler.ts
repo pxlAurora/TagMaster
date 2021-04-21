@@ -30,8 +30,8 @@ export type RequestMessage<L extends MethodList, M extends keyof L | null = null
  */
 export type ResponseMessage<L extends MethodList, M extends keyof L | null = null> = WorkerMessage<L, 'output', M>;
 
-export type RequestHandlerMap<L extends MethodList> = {
-	[method in keyof L]?: (data: RequestMessage<L, method>['data']) => ResponseMessage<L, method>['data'] | Promise<ResponseMessage<L, method>['data']>;
+export type RequestHandlerMap<L extends MethodList, H extends PortHandler<L, any> = PortHandler<L, {}>> = {
+	[method in keyof L]?: (data: RequestMessage<L, method>['data'], portHandler: H) => ResponseMessage<L, method>['data'] | Promise<ResponseMessage<L, method>['data']>;
 };
 
 function nextNonce() {
@@ -50,15 +50,15 @@ function isResponse<Us extends MethodList, Them extends MethodList>(msg: Request
 export class PortHandler<Us extends MethodList, Them extends MethodList> {
 	port: MessagePort;
 
-	requestHandlers: RequestHandlerMap<Us> = {};
+	requestHandlers: RequestHandlerMap<Us, this> = {};
 
-	responseHandlers: Map<string, (data: ResponseMessage<Them>['data']) => void> = new Map();
+	responseHandlers: Map<string, (data: ResponseMessage<Them>['data'], portHandler: this) => void> = new Map();
 
 	onClosed: Promise<void>;
 	isClosed = false;
 	private callOnClosed!: () => void;
 
-	constructor(port: MessagePort, requestHandlers: RequestHandlerMap<Us>) {
+	constructor(port: MessagePort, requestHandlers: RequestHandlerMap<Us, PortHandler<Us, Them>>) {
 		this.port = port;
 		this.requestHandlers = requestHandlers;
 
@@ -91,7 +91,7 @@ export class PortHandler<Us extends MethodList, Them extends MethodList> {
 	
 			this.responseHandlers.delete(nonce);
 	
-			handler(msg.data);
+			handler(msg.data, this);
 
 			return;
 		}
@@ -99,7 +99,7 @@ export class PortHandler<Us extends MethodList, Them extends MethodList> {
 		const handler = this.requestHandlers[msg.method];
 		if (!handler) return;
 
-		const response = await handler(msg.data);
+		const response = await handler(msg.data, this);
 
 		this.port.postMessage(<ResponseMessage<Us, (typeof msg)['method']>> {
 			nonce,

@@ -22,9 +22,10 @@ module.exports = function userscriptTemplateGenerator({headers, publicPathOverri
 			return compilation.getAsset(file);
 		}).filter((asset) => {
 			return !asset.info.development && !asset.info.hotModuleReplacement && includeChunks.includes(asset.name);
-		}).map((asset) => {
-			return [asset.name, ((publicPathOverrides || {})[asset.name] || publicPath) + asset.name];
-		});
+		}).reduce((acc, asset) => {
+			acc[asset.name] = ((publicPathOverrides || {})[asset.name] || publicPath) + asset.name;
+			return acc;
+		}, {});
 
 		const out = [
 			generateHeader(
@@ -32,11 +33,11 @@ module.exports = function userscriptTemplateGenerator({headers, publicPathOverri
 					[
 						['updateURL', publicPath + htmlWebpackPlugin.options.filename],
 					],
-					resources.map(([name, url]) => ['resource', `${name} ${url}`]),
+					Object.entries(resources).map(([name, url]) => ['resource', `${name} ${url}`]),
 				),
 			),
 			'',
-			`var T_CHUNKS = ${JSON.stringify(includeChunks)};`,
+			`var T_CHUNKS = ${JSON.stringify(resources)};`,
 			'',
 			userscriptContents,
 		];

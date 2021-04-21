@@ -1,6 +1,9 @@
+import Vue from 'vue';
+
 import {PortHandler} from '../common/PortHandler';
 import {TagDataStore} from '../common/TagDataStore';
 import {SearchMethodInput, SearchMethodOutput} from '../worker/method/search';
+import {download} from './method/download';
 import {ClientRequestMethods, WorkerRequestMethods} from '../worker/types';
 
 /**
@@ -9,6 +12,11 @@ import {ClientRequestMethods, WorkerRequestMethods} from '../worker/types';
 const store = new TagDataStore();
 
 export const tagData = store.tagData;
+
+export const downloadProgress = Vue.observable({
+	loaded: -1,
+	total: -1,
+});
 
 // Workaround for loading a SharedWorker from a UserScript to bypass the strict origin policy.
 function getWorker() {
@@ -22,20 +30,18 @@ function getWorker() {
 const worker = getWorker();
 
 const handler = new PortHandler<ClientRequestMethods, WorkerRequestMethods>(worker.port, {
+	download,
 	ping() {
+		return {};
+	},
+	tagDataStatus(data) {
+		downloadProgress.loaded = data.loaded;
+		downloadProgress.total = data.total;
+
 		return {};
 	},
 });
 handler.start();
-
-if (self.tagMasterUserscript) {
-	// Workaround for SharedWorker CSP restrictions.
-	// FIXME: Only send data if the worker was unable to load it by itself.
-	const data = self.tagMasterUserscript.GM_getResourceText('data.json');
-	handler.send('updateTagData', {
-		rawTagData: data,
-	});
-}
 
 export default {
 	async search(data: SearchMethodInput): Promise<SearchMethodOutput> {

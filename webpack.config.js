@@ -112,7 +112,14 @@ const config = {
 						['match', 'https://e926.net/*'],
 						['run-at', 'document-idle'],
 						['grant', 'GM_getResourceText'],
+						['grant', 'GM_getValue'],
+						['grant', 'GM_setValue'],
+						['grant', 'GM_xmlhttpRequest'],
 						['grant', 'unsafeWindow'],
+						...(isDev ? [] : [
+							['connect', 'github.com'],
+							['connect', 'github-releases.githubusercontent.com'],
+						]),
 					],
 					publicPathOverrides: {
 						'data.json': isDev ? false : 'https://github.com/pxlAurora/e621-tag-data/releases/latest/download/',

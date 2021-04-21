@@ -1,7 +1,7 @@
 import {WorkerMethod} from '../../common/PortHandler';
 import {TagData} from '../../common/types';
 import {getTagData} from './requestTagData';
-import tagData from '../tagData';
+import tagData, {tagDataLoaded} from '../tagData';
 
 export interface SearchMethodInput {
 	filter: string;
@@ -32,7 +32,9 @@ function* getGroups(): Generator<string[]> {
 const POPULAR = getPopular();
 const GROUPS = getGroups();
 
-export function search({filter, quick}: SearchMethodInput): SearchMethodOutput {
+export async function search({filter, quick}: SearchMethodInput): Promise<SearchMethodOutput> {
+	await tagDataLoaded;
+
 	let best: string[] = [];
 	let other: string[] = [];
 	let trimOther = true;
