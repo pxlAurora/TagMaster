@@ -127,7 +127,7 @@ const config = {
 					userscriptContents: fs.readFileSync(path.resolve(__dirname, './tagMaster.user.template.js')),
 				}),
 				filename: isDev ? 'tagMaster.dev.user.js' : 'tagMaster.user.js',
-				chunks: ['tagMaster.js', 'tagMaster.lazy.js', 'search.worker.js', 'data.json'],
+				chunks: ['tagMaster.js', 'tagMaster.lazy.js', 'search.worker.js', 'data.json?skipResources'],
 				inject: false,
 				minify: false,
 			}),

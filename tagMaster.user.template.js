@@ -4,7 +4,7 @@ window.Danbooru = unsafeWindow.Danbooru;
 unsafeWindow.tagWebpackJsonp = window.tagWebpackJsonp = [];
 unsafeWindow.tagMasterUserscript = window.tagMasterUserscript = {
 	GM_getResourceText: function(name) {
-		if (T_CHUNKS[name]) {
+		if (T_ASSETS[name]) {
 			return GM_getResourceText(name);
 		}
 		throw new Error('Illegal GM_getResourceText call');
@@ -15,7 +15,7 @@ unsafeWindow.tagMasterUserscript = window.tagMasterUserscript = {
 	},
 	download: function(url, progressCallback) {
 		return new Promise((resolve, reject) => {
-			var resolvedURL = T_CHUNKS[url];
+			var resolvedURL = T_ASSETS[url];
 			if (!resolvedURL) return reject(new Error('Illegal download call'));
 
 			var key = 'download:' + url;
