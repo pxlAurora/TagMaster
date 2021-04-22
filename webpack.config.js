@@ -113,10 +113,13 @@ const config = {
 						['run-at', 'document-idle'],
 						['grant', 'GM_getResourceText'],
 						['grant', 'GM_getValue'],
+						['grant', 'GM_registerMenuCommand'],
 						['grant', 'GM_setValue'],
 						['grant', 'GM_xmlhttpRequest'],
 						['grant', 'unsafeWindow'],
-						...(isDev ? [] : [
+						...(isDev ? [
+							['connect', '127.0.0.1'],
+						] : [
 							['connect', 'github.com'],
 							['connect', 'github-releases.githubusercontent.com'],
 						]),

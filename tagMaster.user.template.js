@@ -66,4 +66,8 @@ unsafeWindow.tagMasterUserscript = window.tagMasterUserscript = {
 	},
 };
 
+GM_registerMenuCommand('Clear tag data cache', function() {
+	window.tagMasterUserscript.clearDownloadCache();
+});
+
 eval(GM_getResourceText('tagMaster.js'));
