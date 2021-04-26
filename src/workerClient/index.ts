@@ -18,13 +18,40 @@ export const downloadProgress = Vue.observable({
 	total: -1,
 });
 
+declare function __webpack_require__(module: '../worker/search.worker'): void;
+
 // Workaround for loading a SharedWorker from a UserScript to bypass the strict origin policy.
 function getWorker() {
 	if (self.tagMasterUserscript) {
-		return new SharedWorker('data:application/javascript;base64,' + btoa(self.tagMasterUserscript.GM_getResourceText('search.worker.js')));
+		const workerSource = self.tagMasterUserscript.GM_getResourceText('search.worker.js');
+
+		try {
+			// Try to create a SharedWorker using a URI. Works on Firefox.
+			const worker = new SharedWorker('data:application/javascript;base64,' + btoa(workerSource));
+
+			console.log('Using a SharedWorker from data URI.');
+
+			return worker;
+		} catch (ex) {
+			// If the browser threw an exception due to CSP, fallback to running the worker code in the window context.
+			console.log('Not using a SharedWorker.');
+
+			const channel = new MessageChannel();
+			self.tagMasterUserscript.workerFallbackPort = channel.port2;
+
+			eval(workerSource);
+
+			return {
+				port: channel.port1,
+			};
+		}
 	}
 
-	return new SharedWorker(new URL(/* webpackChunkName: 'search.worker' */ '../worker/search.worker', import.meta.url) as unknown as string);
+	const worker = new SharedWorker(new URL(/* webpackChunkName: 'search.worker' */ '../worker/search.worker', import.meta.url) as unknown as string);
+
+	console.log('Using a SharedWorker from URL.');
+
+	return worker;
 }
 
 const worker = getWorker();

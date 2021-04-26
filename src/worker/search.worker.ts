@@ -17,8 +17,7 @@ const requestHandlers: RequestHandlerMap<WorkerRequestMethods> = {
 	requestTagData,
 };
 
-self.addEventListener('connect', (event) => {
-	const port = event.ports[0];
+function registerPort(port: MessagePort) {
 	const portHandler = new PortHandler<{}, ClientRequestMethods>(port, requestHandlers);
 
 	portHandler.onClosed.then(() => {
@@ -31,7 +30,17 @@ self.addEventListener('connect', (event) => {
 	portHandlers.push(portHandler);
 
 	port.start();
-});
+}
+
+if (self.tagMasterUserscript?.workerFallbackPort) {
+	registerPort(self.tagMasterUserscript.workerFallbackPort);
+
+	self.tagMasterUserscript.workerFallbackPort = undefined;
+} else {
+	self.addEventListener('connect', (event) => {
+		registerPort(event.ports[0]);
+	});
+}
 
 const PING_INTERVAL = 10000;
 

@@ -1,10 +1,18 @@
 declare global {
-	interface Window {
-		tagMasterUserscript?: {
-			GM_getResourceText(name: string): string;
+	interface TagMasterUserscript {
+		workerFallbackPort?: MessagePort;
 
-			download(url: string, progressCallback: (loaded: number, total: number) => void): Promise<string>;
-		};
+		GM_getResourceText(name: string): string;
+
+		download(url: string, progressCallback: (loaded: number, total: number) => void): Promise<string>;
+	}
+
+	interface Window {
+		tagMasterUserscript?: TagMasterUserscript;
+	}
+
+	interface SharedWorkerGlobalScope {
+		tagMasterUserscript?: TagMasterUserscript;
 	}
 }
 
