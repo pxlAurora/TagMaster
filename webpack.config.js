@@ -18,7 +18,7 @@ const config = {
 			tagMaster: './src/entry-userscript.ts',
 		}),
 	},
-	devtool: isDev ? 'eval-source-map' : 'hidden-source-map',
+	devtool: isDev ? 'inline-source-map' : 'hidden-source-map',
 	output: {
 		filename: '[name].js',
 		publicPath: isDev ? 'http://127.0.0.1:8080/' : 'https://github.com/pxlAurora/TagMaster/releases/latest/download/',
