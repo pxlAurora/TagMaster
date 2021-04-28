@@ -1,30 +1,28 @@
 import {PortHandler} from '../../common/PortHandler';
+import {download as doDownload} from '../../download';
 import {DownloadMethodInput, DownloadMethodOutput, DownloadStatusMethod} from '../../worker/clientMethod/download';
 
 export async function download(data: DownloadMethodInput, portHandler: PortHandler<{}, {downloadStatus: DownloadStatusMethod;}>): Promise<DownloadMethodOutput> {
-	if (self.tagMasterUserscript) {
-		const res = await self.tagMasterUserscript.download(data.url, (loaded, total) => {
-			portHandler.send('downloadStatus', {
-				jobId: data.jobId,
-				loaded,
-				total,
-			});
-		});
+	let resolvedURL: string | undefined = data.url;
 
-		return {
-			data: res,
-		};
+	if (!self.tagMasterUserscript) {
+		// Resolve the URL ourselves if the download isn't handled by the userscript functions.
+		resolvedURL = {
+			'data.json': new URL('tag-data', import.meta.url).toString(),
+		}[resolvedURL];
 	}
-
-	const resolvedURL = {
-		'data.json': new URL('tag-data', import.meta.url).toString(),
-	}[data.url];
 
 	if (!resolvedURL) throw new Error('Invalid download request');
 
-	const req = await fetch(resolvedURL);
+	const res = await doDownload(resolvedURL, (loaded, total) => {
+		portHandler.send('downloadStatus', {
+			jobId: data.jobId,
+			loaded,
+			total,
+		});
+	});
 
 	return {
-		data: await req.text(),
+		data: res,
 	};
 }

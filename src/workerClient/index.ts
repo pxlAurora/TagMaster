@@ -1,24 +1,15 @@
 import Vue from 'vue';
 
 import {PortHandler} from '../common/PortHandler';
-import {TagDataStore} from '../common/TagDataStore';
-import {SearchMethodInput, SearchMethodOutput} from '../worker/method/search';
 import {download} from './method/download';
+import {DataSource, store} from '../dataSource';
+import {SearchMethodInput, SearchMethodOutput} from '../worker/method/search';
 import {ClientRequestMethods, WorkerRequestMethods} from '../worker/types';
-
-/**
- * Local tag data cache.
- */
-const store = new TagDataStore();
-
-export const tagData = store.tagData;
 
 export const downloadProgress = Vue.observable({
 	loaded: -1,
 	total: -1,
 });
-
-declare function __webpack_require__(module: '../worker/search.worker'): void;
 
 // Workaround for loading a SharedWorker from a UserScript to bypass the strict origin policy.
 function getWorker() {
@@ -54,32 +45,40 @@ function getWorker() {
 	return worker;
 }
 
-const worker = getWorker();
+let handler: PortHandler<ClientRequestMethods, WorkerRequestMethods>;
 
-const handler = new PortHandler<ClientRequestMethods, WorkerRequestMethods>(worker.port, {
-	download,
-	ping() {
-		return {};
-	},
-	tagDataStatus(data) {
-		downloadProgress.loaded = data.loaded;
-		downloadProgress.total = data.total;
+async function getHandler(): Promise<typeof handler> {
+	if (handler) return handler;
 
-		return {};
-	},
-});
-handler.start();
+	const worker = getWorker();
 
-export default {
+	handler = new PortHandler(worker.port, {
+		download,
+		ping() {
+			return {};
+		},
+		tagDataStatus(data) {
+			downloadProgress.loaded = data.loaded;
+			downloadProgress.total = data.total;
+	
+			return {};
+		},
+	});
+	handler.start();
+
+	return handler;
+}
+
+export default <DataSource> {
 	async search(data: SearchMethodInput): Promise<SearchMethodOutput> {
-		const result = await handler.send('search', data);
+		const result = await (await getHandler()).send('search', data);
 
 		store.append(result.tagData);
 
 		return result;
 	},
 	async requestTagData(tags: string[]): Promise<void> {
-		const data = await handler.send('requestTagData', {
+		const data = await (await getHandler()).send('requestTagData', {
 			tags,
 		});
 

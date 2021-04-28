@@ -15,13 +15,15 @@ unsafeWindow.tagMasterUserscript = window.tagMasterUserscript = {
 	},
 	download: function(url, progressCallback) {
 		return new Promise((resolve, reject) => {
-			var resolvedURL = T_ASSETS[url];
+			// This code is responsible only for caching webpack assets. Caching other requests is handled by the browser.
+			var cacheable = T_ASSETS[url] !== undefined;
+			var resolvedURL = T_ASSETS[url] || url;
 			if (!resolvedURL) return reject(new Error('Illegal download call'));
 
 			var key = 'download:' + url;
 			var cacheInfoKey = 'download-info:' + url;
 			var checkedCache = false;
-			var cacheInfo = GM_getValue(cacheInfoKey, false);
+			var cacheInfo = cacheable ? GM_getValue(cacheInfoKey, false) : false;
 			var CACHE_FOR = 24 * 60 * 60 * 1000;
 
 			if (cacheInfo && cacheInfo.date + CACHE_FOR > Date.now()) {
@@ -46,14 +48,18 @@ unsafeWindow.tagMasterUserscript = window.tagMasterUserscript = {
 						}
 					}
 
-					progressCallback(event.loaded, event.lengthComputable ? event.total : -1);
+					if (progressCallback) {
+						progressCallback(event.loaded, event.lengthComputable ? event.total : -1);
+					}
 				},
 				onload: function(event) {
-					GM_setValue(key, event.responseText);
-					GM_setValue(cacheInfoKey, {
-						date: Date.now(),
-						url: event.finalUrl.split('?')[0],
-					});
+					if (cacheable) {
+						GM_setValue(key, event.responseText);
+						GM_setValue(cacheInfoKey, {
+							date: Date.now(),
+							url: event.finalUrl.split('?')[0],
+						});
+					}
 
 					resolve(event.responseText);
 				},

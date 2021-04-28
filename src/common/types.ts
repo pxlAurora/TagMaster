@@ -4,7 +4,7 @@ declare global {
 
 		GM_getResourceText(name: string): string;
 
-		download(url: string, progressCallback: (loaded: number, total: number) => void): Promise<string>;
+		download(url: string, progressCallback?: (loaded: number, total: number) => void): Promise<string>;
 	}
 
 	interface Window {

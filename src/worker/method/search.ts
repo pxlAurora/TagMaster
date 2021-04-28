@@ -1,18 +1,12 @@
 import {WorkerMethod} from '../../common/PortHandler';
-import {TagData} from '../../common/types';
+import {SearchInput, SearchOutput} from '../../dataSource';
 import {getTagData} from './requestTagData';
 import tagData, {tagDataLoaded} from '../tagData';
 
-export interface SearchMethodInput {
-	filter: string;
-	quick?: boolean;
+export interface SearchMethodInput extends SearchInput {
 }
 
-export interface SearchMethodOutput {
-	tagData: TagData;
-	best: string[];
-	other: string[];
-	complete: boolean;
+export interface SearchMethodOutput extends SearchOutput {
 }
 
 export type SearchMethod = WorkerMethod<SearchMethodInput, SearchMethodOutput>;

@@ -45,10 +45,10 @@
 import Vue from 'vue';
 
 import {Tag} from '../common/types';
+import dataSource, {tagData} from '../dataSource/client';
 import DText from './DText.vue';
 import HoverDetector from './HoverDetector.vue';
 import TagCheckbox from './TagCheckbox.vue';
-import workerClient, {tagData} from '../workerClient';
 import {TagList} from '../TagList';
 
 export default Vue.extend({
@@ -166,7 +166,7 @@ export default Vue.extend({
 		async requestTagData() {
 			if (this.dataLoaded) return;
 
-			await workerClient.requestTagData(this.children);
+			await dataSource.requestTagData(this.children);
 
 			this.dataLoaded = true;
 		},

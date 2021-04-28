@@ -123,6 +123,7 @@ const config = {
 							['connect', 'github.com'],
 							['connect', 'github-releases.githubusercontent.com'],
 						]),
+						['connect', 'tagmaster.bitwolfy.com'],
 					],
 					publicPathOverrides: {
 						'data.json': isDev ? false : 'https://github.com/pxlAurora/e621-tag-data/releases/latest/download/',

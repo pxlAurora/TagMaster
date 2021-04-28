@@ -1,4 +1,5 @@
 import {PortHandler, WorkerMethod} from '../../common/PortHandler';
+import {DownloadProgressCallback} from '../../download';
 import {portHandlers} from '../search.worker';
 
 export interface DownloadMethodInput {
@@ -30,8 +31,6 @@ export interface DownloadJob {
 	progressCallback?: DownloadProgressCallback,
 	resolve: (data: string) => void;
 }
-
-export type DownloadProgressCallback = (loaded: number, total: number) => void;
 
 export type DownloadPortHandler = PortHandler<{downloadStatus: DownloadStatusMethod;}, {download: DownloadMethod;}>;
 
