@@ -1,7 +1,7 @@
 import {TagData} from '../common/types';
-import {SearchOutput, store, tagData} from '../dataSource';
-import {DataSource} from '../dataSource';
+import {DataSource, store, tagData} from '../dataSource';
 import {download} from '../download';
+import {SearchMethodOutput} from '../worker/method/search';
 
 const URL_BASE = 'https://tagmaster.bitwolfy.com/';
 
@@ -30,7 +30,7 @@ export default <DataSource> {
 
 		const res = await download(`${URL_BASE}search?filter=${encodeURIComponent(input.filter)}`);
 
-		const data = JSON.parse(res) as SearchOutput;
+		const data = JSON.parse(res) as SearchMethodOutput;
 
 		store.append(data.tagData);
 

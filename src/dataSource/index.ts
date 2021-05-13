@@ -1,5 +1,4 @@
 import {TagDataStore} from '../common/TagDataStore';
-import {TagData} from '../common/types';
 
 export interface SearchInput {
 	filter: string;
@@ -7,7 +6,6 @@ export interface SearchInput {
 }
 
 export interface SearchOutput {
-	tagData: TagData;
 	best: string[];
 	other: string[];
 	complete: boolean;

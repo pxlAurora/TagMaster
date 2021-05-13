@@ -1,9 +1,8 @@
 import Vue from 'vue';
 
 import {PortHandler} from '../common/PortHandler';
-import {download} from './method/download';
 import {DataSource, store} from '../dataSource';
-import {SearchMethodInput, SearchMethodOutput} from '../worker/method/search';
+import {download} from './method/download';
 import {ClientRequestMethods, WorkerRequestMethods} from '../worker/types';
 
 export const downloadProgress = Vue.observable({
@@ -70,14 +69,14 @@ async function getHandler(): Promise<typeof handler> {
 }
 
 export default <DataSource> {
-	async search(data: SearchMethodInput): Promise<SearchMethodOutput> {
+	async search(data) {
 		const result = await (await getHandler()).send('search', data);
 
 		store.append(result.tagData);
 
 		return result;
 	},
-	async requestTagData(tags: string[]): Promise<void> {
+	async requestTagData(tags) {
 		const data = await (await getHandler()).send('requestTagData', {
 			tags,
 		});
