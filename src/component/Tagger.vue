@@ -52,7 +52,7 @@ export default Vue.extend({
 		},
 		lockedTagList: {
 			type: TagList,
-			default: () => new TagList('male female'),
+			default: () => new TagList(),
 		},
 		visible: {
 			type: Boolean,
