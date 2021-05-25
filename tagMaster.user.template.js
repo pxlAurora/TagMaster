@@ -70,6 +70,18 @@ unsafeWindow.tagMasterUserscript = window.tagMasterUserscript = {
 			});
 		});
 	},
+	settingsStore: {
+		loadSettings: function() {
+			var loadedSettings = GM_getValue('settings') || null;
+
+			return Promise.resolve(loadedSettings);
+		},
+		saveSettings: function(settings) {
+			GM_setValue('settings', settings);
+
+			return Promise.resolve();
+		},
+	},
 };
 
 GM_registerMenuCommand('Clear tag data cache', function() {

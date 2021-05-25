@@ -1,21 +1,3 @@
-declare global {
-	interface TagMasterUserscript {
-		workerFallbackPort?: MessagePort;
-
-		GM_getResourceText(name: string): string;
-
-		download(url: string, progressCallback?: (loaded: number, total: number) => void): Promise<string>;
-	}
-
-	interface Window {
-		tagMasterUserscript?: TagMasterUserscript;
-	}
-
-	interface SharedWorkerGlobalScope {
-		tagMasterUserscript?: TagMasterUserscript;
-	}
-}
-
 export interface TagData {
 	tags: Record<string, Tag>;
 	alias: Record<string, string>;

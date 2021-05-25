@@ -1,27 +1,35 @@
 <template>
 	<floating-container :tag="'blockquote'" class="tagger" v-show="visible" :floating="floating" v-slot="{dragging, onMouseDown}">
 		<div class="sticky">
-			<h5 class="title" @mousedown.left="onMouseDown">Tag Master</h5>
-			<input class="search" type="text" v-model="searchedTag" @keypress.enter="doSearch" title="Search for tags. Spaces are used to create AND filters. Start with / to use RegEx. # for tag groups. @ for list of top 500 popular tags." />
+			<h5 class="title" @mousedown.left="onMouseDown">
+				Tag Master
+				<span v-if="settingsAdjusted" class="title-button" :class="{active: showSettings}" @click.left="showSettings = !showSettings">Settings</span>
+			</h5>
+			<input v-if="!showSettings" class="search" type="text" v-model="searchedTag" @keypress.enter="doSearch" title="Search for tags. Spaces are used to create AND filters. Start with / to use RegEx. # for tag groups. @ for list of top 500 popular tags." />
 		</div>
-		<div v-if="dataLoaded" v-show="!dragging">
-			<tag v-for="(t, index) in shownTags" :key="t" :tagName="t" :expandUntil="index < foundImmediateTags.length ? 0 : -1" :tagList="tagList" :lockedTagList="lockedTagList" />
-		</div>
-		<div v-else class="info">
-			({{ loadingText }})
-		</div>
-		<div v-if="searching" class="info">
-			(searching)
-		</div>
+		<settings v-if="showSettings" @hide="showSettings = false; initialize();"/>
+		<template v-else>
+			<div v-if="dataLoaded" v-show="!dragging">
+				<tag v-for="(t, index) in shownTags" :key="t" :tagName="t" :expandUntil="index < foundImmediateTags.length ? 0 : -1" :tagList="tagList" :lockedTagList="lockedTagList" />
+			</div>
+			<div v-else class="info">
+				({{ loadingText }})
+			</div>
+			<div v-if="searching" class="info">
+				(searching)
+			</div>
+		</template>
 	</floating-container>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, {PropType} from 'vue';
 
 import {TagData, TagType} from '../common/types';
 import dataSource, {tagData} from '../dataSource/client';
 import FloatingContainer from './FloatingContainer.vue';
+import {settingsHolder} from '../settings';
+import Settings from './Settings.vue';
 import Tag from './Tag.vue';
 import {TagList} from '../TagList';
 import {downloadProgress} from '../workerClient';
@@ -36,6 +44,7 @@ const TAG_TYPE_ORDER = [TagType.ARTIST, TagType.CHARACTER, TagType.COPYRIGHT, Ta
 export default Vue.extend({
 	components: {
 		FloatingContainer,
+		Settings,
 		Tag,
 	},
 	model: {
@@ -65,6 +74,7 @@ export default Vue.extend({
 	},
 	data() {
 		return {
+			initialized: false,
 			searchedTag: '',
 			foundImmediateTags: [] as string[],
 			foundTags: [] as string[],
@@ -73,6 +83,7 @@ export default Vue.extend({
 			searchTimeout: -1,
 			oldBeforeUnloadHandler: null as typeof window['onbeforeunload'],
 			downloadProgress,
+			showSettings: !settingsHolder.settingsAdjusted,
 		};
 	},
 	computed: {
@@ -101,6 +112,11 @@ export default Vue.extend({
 
 			return out.join(', ');
 		},
+		settingsAdjusted(): boolean {
+			void this.showSettings;
+
+			return settingsHolder.settingsAdjusted;
+		},
 	},
 	watch: {
 		tagList: {
@@ -119,26 +135,11 @@ export default Vue.extend({
 			clearTimeout(this.searchTimeout);
 
 			this.doSearch(true);
-			this.searchTimeout = window.setTimeout(() => this.doSearch(false), 500);
+			this.searchTimeout = window.setTimeout(() => this.doSearch(false), settingsHolder.getValue('searchDelay'));
 		},
 	},
 	created() {
-		if (this.tagList.size() === 0) {
-			const initial = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}')[this.id]?.tags;
-
-			if (initial) {
-				const list = new TagList();
-				list.tags = initial;
-
-				if (list.size() > 0) {
-					this.$set(this.tagList, 'tags', initial);
-					this.emitInput();
-					this.requestTagData();
-				}
-			}
-		}
-
-		this.requestTagData();
+		this.initialize();
 	},
 	mounted() {
 		// Technically not great but whatever, good enough. Let's just hope nothing else interacts with it. addEventListener doesn't work for this.
@@ -149,6 +150,27 @@ export default Vue.extend({
 		if (window.onbeforeunload === UNLOAD_CONFIRM) window.onbeforeunload = this.oldBeforeUnloadHandler;
 	},
 	methods: {
+		initialize() {
+			if (!settingsHolder.settingsAdjusted || this.initialized) return;
+
+			if (this.tagList.size() === 0) {
+				const initial = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}')[this.id]?.tags;
+
+				if (initial) {
+					const list = new TagList();
+					list.tags = initial;
+
+					if (list.size() > 0) {
+						this.$set(this.tagList, 'tags', initial);
+						this.emitInput();
+					}
+				}
+			}
+
+			this.requestTagData();
+
+			this.initialized = true;
+		},
 		emitInput() {
 			this.$emit('input', this.tagList);
 		},
@@ -229,6 +251,21 @@ blockquote, >>>blockquote {
 				-moz-user-select: none;
 				-webkit-user-select: none;
 				cursor: move;
+			}
+
+			>.title-button {
+				font-size: 0.8em;
+				float: right;
+				opacity: 0.5;
+				cursor: pointer;
+
+				&:hover {
+					text-decoration: underline;
+				}
+
+				&.active {
+					opacity: 1;
+				}
 			}
 		}
 

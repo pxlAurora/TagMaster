@@ -89,6 +89,16 @@ h5 {
 	border: 0;
 }
 
+button, input, select, textarea {
+	border: 0;
+	border-radius: 2px;
+	padding: 1px 2px;
+	line-height: normal;
+	font-size: 100%;
+	margin: 0;
+	vertical-align: middle;
+}
+
 .styled-dtext .dtext-color-gen, .styled-dtext .dtext-color-general {
 	color: #b4c7d9;
 }

@@ -19,6 +19,7 @@ Tag Master is a userscript that runs in your browser using an extension.
 1. Install a userscript manager (for example [Tampermonkey](https://www.tampermonkey.net/)).
 2. Install [Tag Master](https://github.com/pxlAurora/TagMaster/releases/latest/download/tagMaster.user.js). With most managers clicking on the link and approving installation of the script should be enough.
 3. Verify that the script works by attempting to edit post tags or using the upload page (both require being logged in).
+4. On first use you will be asked to review the settings. Do so, then click the "Save" button at the bottom.
 
 ### Updating
 

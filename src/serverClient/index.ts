@@ -1,9 +1,8 @@
 import {TagData} from '../common/types';
 import {DataSource, store, tagData} from '../dataSource';
 import {download} from '../download';
+import {settingsHolder} from '../settings';
 import {SearchMethodOutput} from '../worker/method/search';
-
-const URL_BASE = 'https://tagmaster.bitwolfy.com/';
 
 export default <DataSource> {
 	async requestTagData(tags) {
@@ -15,7 +14,7 @@ export default <DataSource> {
 
 		if (tags.length === 0) return;
 
-		const res = await download(`${URL_BASE}requestTagData?tags=${encodeURIComponent(tags.join())}`);
+		const res = await download(`${settingsHolder.getValue('searchServer')}/requestTagData?tags=${encodeURIComponent(tags.join())}`);
 
 		const data = JSON.parse(res) as TagData;
 
@@ -28,12 +27,22 @@ export default <DataSource> {
 			complete: false,
 		};
 
-		const res = await download(`${URL_BASE}search?filter=${encodeURIComponent(input.filter)}`);
+		try {
+			const res = await download(`${settingsHolder.getValue('searchServer')}/search?filter=${encodeURIComponent(input.filter)}`);
 
-		const data = JSON.parse(res) as SearchMethodOutput;
+			const data = JSON.parse(res) as SearchMethodOutput;
 
-		store.append(data.tagData);
+			store.append(data.tagData);
 
-		return data;
+			return data;
+		} catch (err) {
+			console.error(err);
+
+			return {
+				best: ['<network error>'],
+				other: [],
+				complete: true,
+			};
+		}
 	},
 };

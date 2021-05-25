@@ -42,7 +42,9 @@ interface CreateTaggerOptions {
 			initialized = true;
 		}
 
-		const {TagList, Tagger} = await import(/* webpackChunkName: 'tagMaster.lazy' */ './index');
+		const {setSettingsStore, TagList, Tagger} = await import(/* webpackChunkName: 'tagMaster.lazy' */ './index');
+
+		await setSettingsStore(self.tagMasterUserscript?.settingsStore ?? null);
 
 		if (!attachOn) {
 			const container = document.createElement('div');

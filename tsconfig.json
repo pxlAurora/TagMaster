@@ -18,6 +18,7 @@
 		"./vue-shim.d.ts",
 		"./src/entry-app.ts",
 		"./src/entry-userscript.ts",
+		"./src/globals.d.ts",
 	],
 	"exclude": [
 		"node_modules/**/*",
