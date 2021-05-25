@@ -9,9 +9,9 @@ function forward<K extends keyof DataSource>(name: K): (...args: Parameters<Data
 		let client: DataSource;
 
 		if (useSource === 'server') {
-			client = (await import('../serverClient')).default;
+			client = (await import(/* webpackMode: 'eager' */ '../serverClient')).default;
 		} else if (useSource === 'worker') {
-			client = (await import('../workerClient')).default;
+			client = (await import(/* webpackMode: 'eager' */ '../workerClient')).default;
 		} else {
 			throw new Error('Invalid data source');
 		}
