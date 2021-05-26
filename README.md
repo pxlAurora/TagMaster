@@ -2,7 +2,7 @@
 
 Tagging helper for e621 (and e926) featuring:
 
-- Searching tags using a data set stored in the browser.
+- Searching tags using a data set stored in the browser or through a server.
 - Automatic tag alias resolution and knowledge of tag implications.
 - Tag usage counts and wiki snippets for all known tags.
 - Endless tree of related tags using wiki data.
