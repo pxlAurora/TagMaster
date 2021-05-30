@@ -13,23 +13,22 @@ unsafeWindow.tagMasterUserscript = window.tagMasterUserscript = {
 		GM_setValue('download:data.json', false);
 		GM_setValue('download-info:data.json', false);
 	},
-	download: function(url, progressCallback) {
+	download: async function(url, progressCallback) {
+		// This code is responsible only for caching webpack assets. Caching other requests is handled by the browser.
+		var cacheable = T_ASSETS[url] !== undefined;
+		var resolvedURL = T_ASSETS[url] || url;
+		if (!resolvedURL) return Promise.reject(new Error('Illegal download call'));
+
+		var key = 'download:' + url;
+		var cacheInfoKey = 'download-info:' + url;
+		var checkedCache = false;
+		var cacheInfo = cacheable ? GM_getValue(cacheInfoKey, false) : false;
+		var cacheFor = (await window.tagMasterUserscript.settingsStore.loadSettings()).cacheDuration;
+		if (cacheInfo && cacheInfo.date + cacheFor > Date.now()) {
+			return Promise.resolve(GM_getValue(key));
+		}
+
 		return new Promise((resolve, reject) => {
-			// This code is responsible only for caching webpack assets. Caching other requests is handled by the browser.
-			var cacheable = T_ASSETS[url] !== undefined;
-			var resolvedURL = T_ASSETS[url] || url;
-			if (!resolvedURL) return reject(new Error('Illegal download call'));
-
-			var key = 'download:' + url;
-			var cacheInfoKey = 'download-info:' + url;
-			var checkedCache = false;
-			var cacheInfo = cacheable ? GM_getValue(cacheInfoKey, false) : false;
-			var CACHE_FOR = 24 * 60 * 60 * 1000;
-
-			if (cacheInfo && cacheInfo.date + CACHE_FOR > Date.now()) {
-				return resolve(GM_getValue(key));
-			}
-
 			var req = GM_xmlhttpRequest({
 				method: 'GET',
 				responseType: 'text',

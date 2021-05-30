@@ -45,6 +45,21 @@
 				<a href="javascript:void 0" @click.left="resetToDefault('searchServer')" title="Reset to default">&#8635;</a>
 			</div>
 		</section>
+		<section v-if="newSettings.dataSource === 'local'">
+			<hr />
+			<h3>Cache duration</h3>
+			<p>
+				How long the local cache is valid for.
+			</p>
+			<div class="horizontal-field">
+				<select v-model.number="newSettings.cacheDuration">
+					<option value="86400000">1 Day</option>
+					<option value="604800000">7 Days</option>
+					<option value="2592000000">30 Days</option>
+				</select>
+				<a href="javascript:void 0" @click.left="resetToDefault('cacheDuration')" title="Reset to default">&#8635;</a>
+			</div>
+		</section>
 		<section>
 			<hr />
 			<h3>Search delay</h3>

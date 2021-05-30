@@ -6,6 +6,8 @@ export interface Settings {
 	searchServer: string;
 
 	searchDelay: number;
+
+	cacheDuration: number;
 }
 
 export interface SettingsStore {
@@ -22,6 +24,7 @@ const DEFAULT_SETTINGS: Settings = {
 	dataSource: 'local',
 	searchServer: 'https://tagmaster.bitwolfy.com/',
 	searchDelay: 500,
+	cacheDuration: 24 * 60 * 60 * 1000,
 };
 
 export async function setSettingsStore(settingsStore: SettingsStore | null) {
