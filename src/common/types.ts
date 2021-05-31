@@ -17,7 +17,7 @@ export enum TagType {
 export interface Tag {
 	count: number;
 	type: TagType;
-	implies: string[];
-	impliedBy: string[];
+	implies?: string[];
+	impliedBy?: string[];
 	hint?: string;
 }

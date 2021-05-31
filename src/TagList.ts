@@ -41,11 +41,9 @@ export class TagList {
 
 		// Cascade to tags that don't already exist.
 		const tagMeta = tagData.tags[resolved];
-		if (tagMeta) {
-			tagMeta.implies.forEach((implied) => {
-				if (this.tags[implied] === undefined) this.add(implied, true);
-			});
-		}
+		tagMeta?.implies?.forEach((implied) => {
+			if (this.tags[implied] === undefined) this.add(implied, true);
+		});
 	}
 
 	remove(tag: string, impliedOnly: boolean = false) {
@@ -57,18 +55,16 @@ export class TagList {
 
 		// If this tag is implied by another tag, mark it as such and don't cascade.
 		const tagMeta = tagData.tags[tag];
-		if (tagMeta && tagMeta.impliedBy.some((impliedBy) => this.tags[impliedBy] !== undefined)) {
+		if (tagMeta?.impliedBy?.some((impliedBy) => this.tags[impliedBy] !== undefined)) {
 			Vue.set(this.tags, tag, false);
 			return;
 		}
 
 		Vue.delete(this.tags, tag);
 
-		if (tagMeta) {
-			tagMeta.implies.forEach((implies) => {
-				this.remove(implies, true);
-			});
-		}
+		tagMeta?.implies?.forEach((implies) => {
+			this.remove(implies, true);
+		});
 	}
 
 	clear() {

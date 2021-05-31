@@ -148,8 +148,9 @@ export default Vue.extend({
 		children(): string[] {
 			if (this.isGroup) return this.group;
 			if (this.tag) {
-				if (tagData.tagGroups[`#related/${this.name}`]) return this.tag.impliedBy.concat(`#related/${this.name}`);
-				return this.tag.impliedBy;
+				const impliedBy = this.tag.impliedBy || [];
+				if (tagData.tagGroups[`#related/${this.name}`]) return impliedBy.concat(`#related/${this.name}`);
+				return impliedBy;
 			}
 			return [];
 		},
