@@ -8,6 +8,8 @@ const isStandalone = process.env.WEBPACK_STANDALONE === '1';
 
 const tagDataPath = fs.realpathSync(path.resolve(__dirname, './data/tags.json'));
 
+const version = require('./package.json').version;
+
 const config = {
 	mode: isDev ? 'development' : 'production',
 	target: 'web',
@@ -21,7 +23,7 @@ const config = {
 	devtool: isDev ? 'inline-source-map' : 'hidden-source-map',
 	output: {
 		filename: '[name].js',
-		publicPath: isDev ? 'http://127.0.0.1:8080/' : 'https://github.com/pxlAurora/TagMaster/releases/latest/download/',
+		publicPath: isDev ? 'http://127.0.0.1:8080/' : `https://github.com/pxlAurora/TagMaster/releases/${version}/download/`,
 		chunkLoadingGlobal: 'tagWebpackJsonp',
 		devtoolModuleFilenameTemplate(info) {
 			if (info.resourcePath.endsWith('.vue')) {
@@ -104,7 +106,7 @@ const config = {
 					headers: [
 						['name', isDev ? '[dev] Tag Master' : 'Tag Master'],
 						['namespace', isDev ? 'localhost' : 'https://github.com/pxlAurora/'],
-						['version', require('./package.json').version],
+						['version', version],
 						['description', 'Tagging helper for e621.'],
 						['author', 'pxlAurora'],
 						['homepage', 'https://github.com/pxlAurora/TagMaster/'],
